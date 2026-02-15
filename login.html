@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="منصة تعليمية للفيزياء تساعد الطلاب على تعلم الفيزياء بطريقة سهلة وممتعة">
+    <meta name="keywords" content="فيزياء, تعليم, منصة تعليمية, دروس فيزياء, امتحانات فيزياء, مذكرات فيزياء">
+    <meta name="author" content="مستر ياسر علي">
+    <meta property="og:title" content="فزيائي | منصة تعليمية للفيزياء">
+    <meta property="og:description" content="انضم إلينا في فزيائي وتعلم الفيزياء بطريقة سهلة وممتعة مع مستر ياسر علي">
+    <meta property="og:image" content="فزيائي.png">
+    <meta property="og:type" content="website">
+    <title>فزيائي | دخول</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="فزيائي.png">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav>
+        <div class="navbar">
+            <a href="index.html" class="logo">🔥 فزيائي</a>
+            <div>
+                <div class="dropdown">
+                    <a href="#">📚 الصفوف</a>
+                    <div class="dropdown-content">
+                        <a href="class-1.html">الصف الأول الثانوي</a>
+                        <a href="class-2.html">الصف الثاني الثانوي</a>
+                        <a href="class-3.html">الصف الثالث الثانوي</a>
+                    </div>
+                </div>
+                <a href="exams.html">الامتحانات</a>
+                <a href="login.html">تسجيل الدخول</a>
+                <a href="register.html">تسجيل جديد</a>
+                <a href="teacher.html" id="teacher-dashboard" class="hidden">👨‍🏫 لوحة التحكم</a>
+                <button onclick="toggleDarkMode()" id="dark-mode-btn">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Login Container -->
+    <div class="container">
+        <h2>🔐 دخول منصة فزيائي</h2>
+        <p class="subtitle-text">سجل دخولك للوصول إلى الدروس</p>
+        
+        <input type="email" id="loginEmail" placeholder="📧 البريد الإلكتروني" required>
+        <input type="password" id="loginPassword" placeholder="🔑 كلمة السر" required>
+        
+        <button onclick="login()" class="btn">🚀 دخول للمنصة</button>
+        
+        <p id="message"></p>
+        
+        <hr>
+        
+        <div class="link">
+            <p>ليس لديك حساب؟</p>
+            <a href="register.html">📝 سجل الآن</a>
+        </div>
+
+        <p class="sub-text">
+            🔒 حسابك آمن تماماً معنا
+        </p>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2026 منصة فزيائي - جميع الحقوق محفوظة</p>
+        <p>
+            <a href="#">سياسة الخصوصية</a> | 
+            <a href="#">شروط الاستخدام</a> | 
+            <a href="#">تواصل معنا</a>
+        </p>
+    </footer>
+
+    <script type="module" src="script.js"></script>
+    <script>
+        function initDarkMode() {
+            const isDark = localStorage.getItem('darkMode') === 'true';
+            const btn = document.getElementById('dark-mode-btn');
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                if (btn) btn.textContent = '☀️';
+            } else {
+                document.body.classList.remove('dark-mode');
+                if (btn) btn.textContent = '🌙';
+            }
+        }
+
+        function toggleDarkMode() {
+            const isDark = localStorage.getItem('darkMode') === 'true';
+            const newState = !isDark;
+            localStorage.setItem('darkMode', newState);
+            initDarkMode();
+        }
+
+        function checkTeacherLogin() {
+            const isTeacher = localStorage.getItem('isTeacher') === 'true';
+            const dashboardBtn = document.getElementById('teacher-dashboard');
+            
+            if (isTeacher) {
+                if (dashboardBtn) dashboardBtn.style.display = 'inline-block';
+            }
+        }
+
+
+        function login() {
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+            const messageDiv = document.getElementById('message');
+
+            if (!email || !password) {
+                messageDiv.innerHTML = '<span class="message error">❌ يرجى ملء جميع الحقول</span>';
+                return;
+            }
+
+            // تحقق من كون المستخدم مدرس أو المدير (admin)
+            if (email === 'admin' && password === '1234') {
+                localStorage.setItem('isTeacher', 'true');
+                messageDiv.innerHTML = '<span class="message success">✅ تم الدخول كالمستر (Admin)!</span>';
+                setTimeout(() => {
+                    location.href = 'teacher.html';
+                }, 800);
+            } else if (email.toLowerCase().includes('teacher') || password.toLowerCase() === 'teacher') {
+                localStorage.setItem('isTeacher', 'true');
+                messageDiv.innerHTML = '<span class="message success">✅ تم الدخول بنجاح كمدرس!</span>';
+                setTimeout(() => {
+                    location.href = 'index.html';
+                }, 1000);
+            } else {
+                // دخول عادي (طالب)
+                messageDiv.innerHTML = '<span class="message success">✅ تم الدخول بنجاح!</span>';
+                setTimeout(() => {
+                    location.href = 'index.html';
+                }, 1000);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initDarkMode();
+            checkTeacherLogin();
+
+            const dropdownToggle = document.querySelector('.dropdown > a');
+            const dropdownContent = document.querySelector('.dropdown-content');
+            
+            if (dropdownToggle) {
+                dropdownToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    dropdownContent.classList.toggle('active');
+                    dropdownToggle.classList.toggle('active');
+                });
+                
+                document.addEventListener('click', function(e) {
+                    if (!e.target.closest('.dropdown')) {
+                        dropdownContent.classList.remove('active');
+                        dropdownToggle.classList.remove('active');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

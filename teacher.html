@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="منصة تعليمية للفيزياء تساعد الطلاب على تعلم الفيزياء بطريقة سهلة وممتعة">
+    <meta name="keywords" content="فيزياء, تعليم, منصة تعليمية, دروس فيزياء, امتحانات فيزياء, مذكرات فيزياء">
+    <meta name="author" content="مستر ياسر علي">
+    <meta property="og:title" content="فزيائي | منصة تعليمية للفيزياء">
+    <meta property="og:description" content="انضم إلينا في فزيائي وتعلم الفيزياء بطريقة سهلة وممتعة مع مستر ياسر علي">
+    <meta property="og:image" content="فزيائي.png" >
+    <meta property="og:type" content="website">
+    <title>فزيائي | لوحة المدرس</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="فزيائي.png">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav>
+        <div class="navbar">
+            <a href="index.html" class="logo">🔥 فزيائي</a>
+            <div>
+                <a href="teacher.html">لوحة التحكم</a>
+                <a href="exams.html">الامتحانات</a>
+                <button onclick="toggleDarkMode()" id="dark-mode-btn">🌙</button>
+                <button onclick="logout()" id="logout-btn">🚪 تسجيل خروج</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Teacher Dashboard Container -->
+    <div class="container-large">
+        <h1>👨‍🏫 لوحة تحكم منصة فزيائي</h1>
+        <p class="subtitle-text">مرحباً بك في لوحة التحكم الخاصة بالمدرسين</p>
+
+        <!-- Statistics Cards -->
+        
+
+        <hr>
+
+        <!-- Pending Requests Section -->
+        <section>
+            <h2 class="heading-warning">📥 طلبات الانضمام الجديدة</h2>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الاسم</th>
+                            <th>الإيميل</th>
+                            <th>تاريخ الطلب</th>
+                            <th>الإجراء</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pending-table">
+                    
+                
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <hr>
+
+        <!-- Approved Students Section -->
+        <section>
+            <h2 class="heading-success">✅ الطلاب المقبولين</h2>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الاسم</th>
+                            <th>الإيميل</th>
+                            <th>تاريخ الانضمام</th>
+                            <th>الحالة</th>
+                            <th>الإجراء</th>
+                        </tr>
+                    </thead>
+                    <tbody id="approved-table">
+                        
+                        
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <hr>
+
+        <!-- Upload Exams Section -->
+        <section>
+            <h2 class="heading-primary">📋 رفع الامتحانات</h2>
+            <div class="form-container">
+                <div class="form-grid">
+                    <div>
+                        <label for="exam-class" class="form-label">اختر الصف:</label>
+                        <select id="exam-class" required>
+                            <option value="">-- اختر الصف --</option>
+                            <option value="1">الصف الأول الثانوي</option>
+                            <option value="2">الصف الثاني الثانوي</option>
+                            <option value="3">الصف الثالث الثانوي</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="exam-name" class="form-label">اسم الامتحان:</label>
+                        <input type="text" id="exam-name" placeholder="مثال: امتحان الفصل الأول" required>
+                    </div>
+                    <div>
+                        <label for="exam-file" class="form-label">اختر صور الامتحان (حتى 4 صور):</label>
+                        <input type="file" id="exam-file" accept="image/*" multiple required>
+                    </div>
+                </div>
+                <textarea id="exam-description" placeholder="📑 وصف الامتحان (اختياري)" class="form-textarea"></textarea>
+                <button onclick="uploadExam()" class="btn btn-form">⬆️ رفع الامتحان</button>
+                <p id="exam-message" class="message-text"></p>
+            </div>
+        </section>
+
+        <hr>
+
+        <!-- Exams Display Section -->
+        <section>
+            <h2 class="heading-primary">📋 الامتحانات المرفوعة</h2>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الصورة</th>
+                            <th>اسم الامتحان</th>
+                            <th>الوصف</th>
+                            <th>الصف</th>
+                            <th>تاريخ الرفع</th>
+                            <th>الإجراء</th>
+                        </tr>
+                    </thead>
+                    <tbody id="exams-table">
+                        <tr>
+                            <td colspan="5" class="empty-cell">لا توجد امتحانات</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <hr>
+
+        <!-- Add Lesson Section -->
+        <section>
+            <h2 class="heading-primary">📑 إضافة درس جديد</h2>
+            <div class="form-container">
+                <div class="form-grid">
+                    <input type="text" id="lessonTitle" placeholder="📖 عنوان الدرس" required>
+                    <select id="lessonClass" required>
+                        <option value="">اختر الصف</option>
+                        <option value="1">الصف الأول الثانوي</option>
+                        <option value="2">الصف الثاني الثانوي</option>
+                        <option value="3">الصف الثالث الثانوي</option>
+                    </select>
+                </div>
+                <textarea id="lessonDescription" placeholder="📑 وصف الدرس" class="form-textarea"></textarea>
+                <input type="text" id="lessonLink" placeholder="🔗 رابط الفيديو (YouTube)">
+                <button onclick="addLesson()" class="btn btn-form">➕ إضافة الدرس</button>
+                <p id="lessonMessage" class="message-text"></p>
+            </div>
+        </section>
+
+        <hr>
+
+        <!-- Lessons Management Section -->
+        <section>
+            <h2 class="heading-primary">📚 الدروس المضافة</h2>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>عنوان الدرس</th>
+                            <th>الصف</th>
+                            <th>الوصف</th>
+                            <th>تاريخ الإضافة</th>
+                            <th>الإجراء</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lessons-table">
+                        
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <hr>
+     <!--   <section style="text-align: center; padding: 30px; background: linear-gradient(135deg, rgba(26, 35, 126, 0.05) 0%, rgba(255, 215, 0, 0.05) 100%); border-radius: 12px;">
+            <h2>⚙️ الإجراءات السريعة</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px;">
+                <button class="btn btn-secondary" onclick="alert('سيتم فتح محرر الدروس')">📝 إضافة درس جديد</button>
+                <button class="btn btn-secondary" onclick="alert('عرض التقارير')">📊 عرض التقارير</button>
+                <button class="btn btn-secondary" onclick="alert('إرسال رسالة')">💬 رسالة للطلاب</button>
+                <button class="btn btn-secondary" onclick="alert('الإعدادات')">⚙️ الإعدادات</button>
+            </div>
+        </section>
+        -->
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2026 منصة فزيائي - جميع الحقوق محفوظة</p>
+        <p>
+            <a href="#">سياسة الخصوصية</a> | 
+            <a href="#">شروط الاستخدام</a> | 
+            <a href="#">تواصل معنا</a>
+        </p>
+    </footer>
+
+    <script type="module" src="script.js"></script>
+    <script>
+        function initDarkMode() {
+            const isDark = localStorage.getItem('darkMode') === 'true';
+            const btn = document.getElementById('dark-mode-btn');
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+                if (btn) btn.textContent = '☀️';
+            } else {
+                document.body.classList.remove('dark-mode');
+                if (btn) btn.textContent = '🌙';
+            }
+        }
+
+        function toggleDarkMode() {
+            const isDark = localStorage.getItem('darkMode') === 'true';
+            const newState = !isDark;
+            localStorage.setItem('darkMode', newState);
+            initDarkMode();
+        }
+
+        function logout() {
+            if (confirm('هل تريد تسجيل الخروج؟')) {
+                localStorage.removeItem('isTeacher');
+                location.href = 'index.html';
+            }
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            initDarkMode();
+
+            // Load lessons on page load
+            const table = document.getElementById('lessons-table');
+            let lessons = JSON.parse(localStorage.getItem('lessons')) || [];
+            
+            // Remove default row if lessons exist
+            const rows = table.querySelectorAll('tr');
+            if (lessons.length > 0 && rows.length === 1) {
+                rows[0].remove();
+            }
+            
+            // Add lessons to table
+            lessons.forEach(lesson => {
+                const classMap = {
+                    '1': 'الصف الأول الثانوي',
+                    '2': 'الصف الثاني الثانوي',
+                    '3': 'الصف الثالث الثانوي'
+                };
+                
+                const newRow = table.insertRow();
+                newRow.setAttribute('data-id', lesson.id);
+                newRow.innerHTML = `
+                    <td>${lesson.title}</td>
+                    <td>${classMap[lesson.class]}</td>
+                    <td>${lesson.description}</td>
+                    <td>${lesson.date}</td>
+                    <td>
+                        <button class="btn btn-warning btn-small" onclick="editLesson(this)">✏️ تعديل</button>
+                        <button class="btn btn-danger btn-small" onclick="deleteLesson(this)">🗑️ حذف</button>
+                    </td>
+                `;
+            });
+        });
+
+        // Add lesson function
+        function addLesson() {
+            const title = document.getElementById('lessonTitle').value.trim();
+            const classNum = document.getElementById('lessonClass').value.trim();
+            const description = document.getElementById('lessonDescription').value.trim();
+            const link = document.getElementById('lessonLink').value.trim();
+            const messageDiv = document.getElementById('lessonMessage');
+
+            console.log('Title:', title, 'Class:', classNum, 'Description:', description);
+
+            // Validation
+            if (!title || !classNum || !description) {
+                messageDiv.innerHTML = '<span class="message error">❌ يرجى ملء جميع الحقول المطلوبة (العنوان والصف والوصف)</span>';
+                messageDiv.style.color = '#721c24';
+                return;
+            }
+
+            const classMap = {
+                '1': 'الصف الأول الثانوي',
+                '2': 'الصف الثاني الثانوي',
+                '3': 'الصف الثالث الثانوي'
+            };
+
+            const today = new Date().toISOString().split('T')[0];
+            
+            // Create lesson object
+            const lesson = {
+                id: Date.now(),
+                title: title,
+                class: classNum,
+                description: description,
+                link: link,
+                date: today
+            };
+
+            // Get existing lessons from localStorage
+            let lessons = JSON.parse(localStorage.getItem('lessons')) || [];
+            lessons.push(lesson);
+            localStorage.setItem('lessons', JSON.stringify(lessons));
+
+            // Add to table
+            const table = document.getElementById('lessons-table');
+            const newRow = table.insertRow();
+            newRow.setAttribute('data-id', lesson.id);
+            newRow.innerHTML = `
+                <td>${title}</td>
+                <td>${classMap[classNum]}</td>
+                <td>${description}</td>
+                <td>${today}</td>
+                <td>
+                    <button class="btn btn-warning btn-small" onclick="editLesson(this)">✏️ تعديل</button>
+                    <button class="btn btn-danger btn-small" onclick="deleteLesson(this)">🗑️ حذف</button>
+                </td>
+            `;
+
+            // Clear form and show success message
+            document.getElementById('lessonTitle').value = '';
+            document.getElementById('lessonClass').value = '';
+            document.getElementById('lessonDescription').value = '';
+            document.getElementById('lessonLink').value = '';
+            messageDiv.innerHTML = '<span class="message success">✅ تم إضافة الدرس بنجاح! سيظهر في صفحة الصف قريباً</span>';
+            messageDiv.style.color = '#155724';
+
+            // Clear success message after 3 seconds
+            setTimeout(() => {
+                messageDiv.innerHTML = '';
+            }, 3000);
+        }
+
+        // Delete lesson function
+        function deleteLesson(button) {
+            if (confirm('هل أنت متأكد من حذف هذا الدرس؟')) {
+                const row = button.closest('tr');
+                const id = row.getAttribute('data-id');
+                
+                // Remove from localStorage
+                let lessons = JSON.parse(localStorage.getItem('lessons')) || [];
+                lessons = lessons.filter(lesson => lesson.id != id);
+                localStorage.setItem('lessons', JSON.stringify(lessons));
+                
+                row.remove();
+                alert('✅ تم حذف الدرس بنجاح');
+            }
+        }
+
+        // Edit lesson function
+        function editLesson(button) {
+            const row = button.closest('tr');
+            const cells = row.querySelectorAll('td');
+            
+            document.getElementById('lessonTitle').value = cells[0].textContent;
+            document.getElementById('lessonClass').value = cells[1].textContent.includes('الأول') ? '1' : cells[1].textContent.includes('الثاني') ? '2' : '3';
+            document.getElementById('lessonDescription').value = cells[2].textContent;
+            
+            window.scrollTo({top: document.querySelector('input#lessonTitle').offsetTop - 100, behavior: 'smooth'});
+            document.getElementById('lessonTitle').focus();
+            
+            alert('تم تحميل بيانات الدرس. عدّل ما تريده ثم اضغط "إضافة الدرس" لحفظ التعديلات');
+        }
+
+        // Load lessons on page load
+        // Utility: update dashboard counts
+        function updateCounts() {
+            // Lessons
+            const lessons = JSON.parse(localStorage.getItem('lessons')) || [];
+            const lessonsCountEl = document.getElementById('lessons-count');
+            if (lessonsCountEl) lessonsCountEl.textContent = lessons.length;
+
+            // Students: try localStorage first, else fallback to DOM
+            let students = JSON.parse(localStorage.getItem('students')) || null;
+            const pendingTable = document.getElementById('pending-table');
+            const approvedTable = document.getElementById('approved-table');
+
+            if (students) {
+                const accepted = students.filter(s => s.status === 'approved').length;
+                const pending = students.filter(s => s.status === 'pending').length;
+                const acceptedEl = document.getElementById('accepted-count');
+                const pendingEl = document.getElementById('pending-count');
+                if (acceptedEl) acceptedEl.textContent = accepted;
+                if (pendingEl) pendingEl.textContent = pending;
+            } else {
+                // Count rows in DOM tables
+                const acceptedEl = document.getElementById('accepted-count');
+                const pendingEl = document.getElementById('pending-count');
+                const apRows = approvedTable ? approvedTable.querySelectorAll('tr').length : 0;
+                const pdRows = pendingTable ? pendingTable.querySelectorAll('tr').length : 0;
+                if (acceptedEl) acceptedEl.textContent = apRows;
+                if (pendingEl) pendingEl.textContent = pdRows;
+            }
+        }
+
+        // Accept / Reject handlers
+        function acceptRequest(button) {
+            const row = button.closest('tr');
+            if (!row) return;
+            const cells = row.querySelectorAll('td');
+            const student = {
+                name: cells[0].textContent.trim(),
+                email: cells[1].textContent.trim(),
+                date: new Date().toISOString().split('T')[0],
+                status: 'approved'
+            };
+
+            // Save to localStorage students
+            let students = JSON.parse(localStorage.getItem('students')) || [];
+            students.push(student);
+            localStorage.setItem('students', JSON.stringify(students));
+
+            // Move row to approved table (clone and remove)
+            const approvedTable = document.getElementById('approved-table');
+            const newRow = approvedTable.insertRow();
+            newRow.innerHTML = `
+                <td>${student.name}</td>
+                <td>${student.email}</td>
+                <td>${student.date}</td>
+                <td><span class="status-badge">نشط</span></td>
+                <td>
+                    <button class="btn btn-warning btn-small" onclick="editStudent(this)">✏️ تعديل</button>
+                    <button class="btn btn-danger btn-small" onclick="removeApproved(this)">🗑️ حذف</button>
+                </td>
+            `;
+
+            row.remove();
+            updateCounts();
+        }
+
+        function rejectRequest(button) {
+            const row = button.closest('tr');
+            if (!row) return;
+            if (!confirm('هل أنت متأكد من رفض طلب الانضمام؟')) return;
+            // Optionally store rejected students; for now just remove
+            row.remove();
+            updateCounts();
+        }
+
+        function removeApproved(button) {
+            const row = button.closest('tr');
+            if (!row) return;
+            const email = row.querySelectorAll('td')[1].textContent.trim();
+            // remove from localStorage students
+            let students = JSON.parse(localStorage.getItem('students')) || [];
+            students = students.filter(s => s.email !== email || s.status !== 'approved');
+            localStorage.setItem('students', JSON.stringify(students));
+            row.remove();
+            updateCounts();
+        }
+
+        function editStudent(button) {
+            alert('فتح محرر بيانات الطالب (ليس مفعّل حالياً)');
+        }
+
+        // Exam upload and management
+        function uploadExam() {
+            const classNum = document.getElementById('exam-class').value;
+            const examName = document.getElementById('exam-name').value.trim();
+            const examDesc = document.getElementById('exam-description').value.trim();
+            const files = document.getElementById('exam-file').files;
+            const messageDiv = document.getElementById('exam-message');
+            
+            if (!classNum || !examName || files.length === 0) {
+                messageDiv.innerHTML = '<span class="message error">❌ اختر الصف واسم الامتحان والصور</span>';
+                return;
+            }
+            
+            if (files.length > 4) {
+                messageDiv.innerHTML = '<span class="message error">❌ لا تستطيع رفع أكثر من 4 صور</span>';
+                return;
+            }
+            
+            let imagesData = [];
+            let loadedCount = 0;
+            
+            Array.from(files).forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagesData[index] = e.target.result;
+                    loadedCount++;
+                    
+                    if (loadedCount === files.length) {
+                        const exams = JSON.parse(localStorage.getItem('exams') || '[]');
+                        exams.unshift({
+                            id: Date.now().toString(),
+                            class: parseInt(classNum),
+                            name: examName,
+                            description: examDesc,
+                            images: imagesData,
+                            date: new Date().toISOString().split('T')[0]
+                        });
+                        localStorage.setItem('exams', JSON.stringify(exams));
+                        document.getElementById('exam-class').value = '';
+                        document.getElementById('exam-name').value = '';
+                        document.getElementById('exam-description').value = '';
+                        document.getElementById('exam-file').value = '';
+                        messageDiv.innerHTML = '<span class="message success">✅ تم رفع الامتحان بنجاح (' + files.length + ' صورة)!</span>';
+                        renderAllExams();
+                        setTimeout(() => messageDiv.innerHTML = '', 3000);
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function renderAllExams() {
+            const table = document.getElementById('exams-table');
+            const exams = JSON.parse(localStorage.getItem('exams') || '[]');
+            
+            if (exams.length === 0) {
+                table.innerHTML = '<tr><td colspan="6" class="empty-cell">لا توجد امتحانات</td></tr>';
+                return;
+            }
+            
+            table.innerHTML = '';
+            const classMap = { '1': 'الصف الأول الثانوي', '2': 'الصف الثاني الثانوي', '3': 'الصف الثالث الثانوي' };
+            
+            exams.forEach(e => {
+                const row = table.insertRow();
+                
+                // Build images display (support both old 'data' format and new 'images' format)
+                const imagesList = e.images || (e.data ? [e.data] : []);
+                let imagesHtml = '';
+                if (imagesList.length > 0) {
+                    imagesHtml = '<div class="images-flex">';
+                    imagesList.forEach(img => {
+                        imagesHtml += `<img src="${img}">`;
+                    });
+                    imagesHtml += '</div>';
+                }
+                
+                row.innerHTML = `
+                    <td class="table-center">${imagesHtml}</td>
+                    <td>${e.name}</td>
+                    <td>${e.description || '-'}</td>
+                    <td>${classMap[e.class]}</td>
+                    <td>${e.date}</td>
+                    <td>
+                        <button class="btn btn-danger btn-small" onclick="deleteExam('${e.id}')">🗑️ حذف</button>
+                    </td>
+                `;
+            });
+        }
+
+        function deleteExam(id) {
+            if (!confirm('حذف هذا الامتحان؟')) return;
+            let exams = JSON.parse(localStorage.getItem('exams') || '[]');
+            exams = exams.filter(e => e.id !== id);
+            localStorage.setItem('exams', JSON.stringify(exams));
+            renderAllExams();
+        }
+
+        // Load lessons and students on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            const table = document.getElementById('lessons-table');
+            let lessons = JSON.parse(localStorage.getItem('lessons')) || [];
+            
+            // Remove default row if lessons exist
+            const rows = table.querySelectorAll('tr');
+            if (lessons.length > 0 && rows.length === 1) {
+                rows[0].remove();
+            }
+            
+            // Add lessons to table
+            lessons.forEach(lesson => {
+                const classMap = {
+                    '1': 'الصف الأول الثانوي',
+                    '2': 'الصف الثاني الثانوي',
+                    '3': 'الصف الثالث الثانوي'
+                };
+                
+                const newRow = table.insertRow();
+                newRow.setAttribute('data-id', lesson.id);
+                newRow.innerHTML = `
+                    <td>${lesson.title}</td>
+                    <td>${classMap[lesson.class]}</td>
+                    <td>${lesson.description}</td>
+                    <td>${lesson.date}</td>
+                    <td>
+                        <button class="btn btn-warning btn-small" onclick="editLesson(this)">✏️ تعديل</button>
+                        <button class="btn btn-danger btn-small" onclick="deleteLesson(this)">🗑️ حذف</button>
+                    </td>
+                `;
+            });
+
+            // Ensure students data exists in localStorage. If not, migrate existing table rows (demo) into storage.
+            if (localStorage.getItem('students') === null) {
+                const migrated = [];
+                const pdTable = document.getElementById('pending-table');
+                const apTable = document.getElementById('approved-table');
+
+                if (pdTable) {
+                    const rows = pdTable.querySelectorAll('tr');
+                    rows.forEach(r => {
+                        const cells = r.querySelectorAll('td');
+                        if (cells.length >= 3) {
+                            migrated.push({
+                                name: cells[0].textContent.trim(),
+                                email: cells[1].textContent.trim(),
+                                date: cells[2].textContent.trim() || new Date().toISOString().split('T')[0],
+                                status: 'pending'
+                            });
+                        }
+                    });
+                }
+
+                if (apTable) {
+                    const rows = apTable.querySelectorAll('tr');
+                    rows.forEach(r => {
+                        const cells = r.querySelectorAll('td');
+                        if (cells.length >= 3) {
+                            migrated.push({
+                                name: cells[0].textContent.trim(),
+                                email: cells[1].textContent.trim(),
+                                date: cells[2].textContent.trim() || new Date().toISOString().split('T')[0],
+                                status: 'approved'
+                            });
+                        }
+                    });
+                }
+
+                if (migrated.length > 0) {
+                    localStorage.setItem('students', JSON.stringify(migrated));
+                }
+            }
+
+            // Load students from localStorage into tables
+            const students = JSON.parse(localStorage.getItem('students')) || null;
+            if (students) {
+                const pendingTable = document.getElementById('pending-table');
+                const approvedTable = document.getElementById('approved-table');
+                // clear existing demo rows
+                if (pendingTable) pendingTable.innerHTML = '';
+                if (approvedTable) approvedTable.innerHTML = '';
+
+                students.forEach(s => {
+                    if (s.status === 'pending') {
+                        const r = pendingTable.insertRow();
+                        r.innerHTML = `
+                            <td>${s.name}</td>
+                            <td>${s.email}</td>
+                            <td>${s.date || ''}</td>
+                            <td>
+                                <button class="btn btn-success btn-small" onclick="acceptRequest(this)">✅ قبول</button>
+                                <button class="btn btn-danger btn-small" onclick="rejectRequest(this)">❌ رفض</button>
+                            </td>
+                        `;
+                    } else if (s.status === 'approved') {
+                        const r = approvedTable.insertRow();
+                        r.innerHTML = `
+                            <td>${s.name}</td>
+                            <td>${s.email}</td>
+                            <td>${s.date || ''}</td>
+                            <td><span class="status-badge">نشط</span></td>
+                            <td>
+                                <button class="btn btn-warning btn-small" onclick="editStudent(this)">✏️ تعديل</button>
+                                <button class="btn btn-danger btn-small" onclick="removeApproved(this)">🗑️ حذف</button>
+                            </td>
+                        `;
+                    }
+                });
+            }
+
+            // Final counts update
+            updateCounts();
+            renderAllExams();
+        });
+    </script>
+
+</body>
+</html>

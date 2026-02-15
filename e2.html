@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الصف الثاني الثانوي - الامتحانات</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav>
+        <div class="navbar">
+            <a href="index.html" class="logo">🔥 فزيائي</a>
+            <div>
+                <div class="dropdown">
+                    <a href="#">📚 الصفوف</a>
+                    <div class="dropdown-content">
+                        <a href="class-1.html">الصف الأول الثانوي</a>
+                        <a href="class-2.html">الصف الثاني الثانوي</a>
+                        <a href="class-3.html">الصف الثالث الثانوي</a>
+                    </div>
+                </div>
+                <a href="exams.html">الامتحانات</a>
+                <a href="login.html">تسجيل الدخول</a>
+                <a href="register.html">تسجيل جديد</a>
+                <a href="teacher.html" id="teacher-dashboard" class="hidden">👨‍🏫 لوحة التحكم</a>
+                <button onclick="toggleDarkMode()" id="dark-mode-btn">🌙</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-large">
+        <h1>الصف الثاني الثانوي - الامتحانات</h1>
+        <p class="subtitle-text">اطلع على جميع امتحانات الصف الثاني الثانوي</p>
+        
+        <div id="exams-container" class="exams-grid"></div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 منصة فزيائي - جميع الحقوق محفوظة</p>
+    </footer>
+
+    <script type="module" src="../script.js"></script>
+    <script>
+        function initDarkMode(){
+            const isDark = localStorage.getItem('darkMode')==='true';
+            const btn=document.getElementById('dark-mode-btn');
+            if(isDark){document.body.classList.add('dark-mode'); if(btn)btn.textContent='☀️'}
+            else{document.body.classList.remove('dark-mode'); if(btn)btn.textContent='🌙'}
+        }
+        function toggleDarkMode(){
+            const isDark = localStorage.getItem('darkMode')==='true';
+            localStorage.setItem('darkMode',!isDark);
+            initDarkMode();
+        }
+        function checkTeacherLogin(){
+            const isTeacher = localStorage.getItem('isTeacher')==='true';
+            const dashboardBtn = document.getElementById('teacher-dashboard');
+            if(isTeacher){
+                if(dashboardBtn) dashboardBtn.style.display='inline-block';
+            }
+        }
+        
+        function renderExams(){
+            const container = document.getElementById('exams-container');
+            const allExams = JSON.parse(localStorage.getItem('exams') || '[]');
+            const exams = allExams.filter(e => e.class == 2);
+            
+            container.innerHTML = '';
+            if(exams.length === 0){
+                container.innerHTML = '<p class="empty-state">لا توجد امتحانات متاحة</p>';
+                return;
+            }
+            
+            exams.forEach(e => {
+                const imagesList = e.images || (e.data ? [e.data] : []);
+                let imagesHtml = '';
+                if(imagesList.length > 0){
+                    imagesList.forEach(img => {
+                        imagesHtml += `<img src="${img}" alt="صورة امتحان">`;
+                    });
+                }
+                
+                const card = document.createElement('div');
+                card.className = 'exam-card';
+                card.innerHTML = `
+                    <div class="exam-card-images">${imagesHtml}</div>
+                    <div class="exam-card-info">
+                        <div class="exam-card-title">${e.name}</div>
+                        <div class="exam-card-desc">${e.description || 'بدون وصف'}</div>
+                        <div class="exam-card-date">📅 ${e.date}</div>
+                        <div class="exam-card-actions">
+                            <button class="btn btn-primary btn-small" onclick="downloadExam('${e.id}')">⬇️ تحميل</button>
+                            <button class="btn btn-secondary btn-small" onclick="viewImages('${e.id}')">👁️ عرض</button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+        
+        function downloadExam(id){
+            const exams = JSON.parse(localStorage.getItem('exams') || '[]');
+            const exam = exams.find(e => e.id === id);
+            if(!exam) return;
+            
+            const imagesList = exam.images || (exam.data ? [exam.data] : []);
+            if(imagesList.length === 0) {
+                alert('لا توجد صور لتحميلها');
+                return;
+            }
+            
+            // تحميل كل الصور
+            imagesList.forEach((img, index) => {
+                const link = document.createElement('a');
+                link.href = img;
+                link.download = `${exam.name}_${index + 1}.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+            
+            alert(`✅ تم تحميل ${imagesList.length} صورة من الامتحان "${exam.name}"`);
+        }
+        
+        let currentImageIndex = 0;
+        let currentExamImages = [];
+        
+        function viewImages(id){
+            const exams = JSON.parse(localStorage.getItem('exams') || '[]');
+            const exam = exams.find(e => e.id === id);
+            if(!exam) return;
+            
+            const imagesList = exam.images || (exam.data ? [exam.data] : []);
+            if(imagesList.length === 0) {
+                alert('لا توجد صور');
+                return;
+            }
+            
+            currentExamImages = imagesList;
+            currentImageIndex = 0;
+            
+            // إنشاء lightbox
+            let lightbox = document.getElementById('exam-lightbox');
+            if(!lightbox) {
+                lightbox = document.createElement('div');
+                lightbox.id = 'exam-lightbox';
+                lightbox.className = 'lightbox';
+                lightbox.innerHTML = `
+                    <div class="lightbox-content">
+                        <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+                        <button class="lightbox-nav lightbox-prev" onclick="prevImage()">❮</button>
+                        <img id="lightbox-image" class="lightbox-image" src="" alt="صورة الامتحان">
+                        <button class="lightbox-nav lightbox-next" onclick="nextImage()">❯</button>
+                        <div class="lightbox-counter"><span id="image-counter">1/1</span></div>
+                    </div>
+                `;
+                document.body.appendChild(lightbox);
+            }
+            
+            updateLightboxImage();
+            lightbox.classList.add('active');
+        }
+        
+        function updateLightboxImage() {
+            const img = document.getElementById('lightbox-image');
+            const counter = document.getElementById('image-counter');
+            img.src = currentExamImages[currentImageIndex];
+            counter.textContent = `${currentImageIndex + 1}/${currentExamImages.length}`;
+        }
+        
+        function nextImage() {
+            currentImageIndex = (currentImageIndex + 1) % currentExamImages.length;
+            updateLightboxImage();
+        }
+        
+        function prevImage() {
+            currentImageIndex = (currentImageIndex - 1 + currentExamImages.length) % currentExamImages.length;
+            updateLightboxImage();
+        }
+        
+        function closeLightbox() {
+            const lightbox = document.getElementById('exam-lightbox');
+            if(lightbox) lightbox.classList.remove('active');
+        }
+        
+        // إغلاق lightbox عند الضغط خارجه
+        document.addEventListener('click', function(e) {
+            const lightbox = document.getElementById('exam-lightbox');
+            if(lightbox && e.target === lightbox) {
+                closeLightbox();
+            }
+        });
+        
+        // التنقل عبر لوحة المفاتيح
+        document.addEventListener('keydown', function(e) {
+            const lightbox = document.getElementById('exam-lightbox');
+            if(lightbox && lightbox.classList.contains('active')) {
+                if(e.key === 'ArrowRight') nextImage();
+                if(e.key === 'ArrowLeft') prevImage();
+                if(e.key === 'Escape') closeLightbox();
+            }
+        });
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            initDarkMode();
+            checkTeacherLogin();
+            renderExams();
+        });
+    </script>
+</body>
+</html>
