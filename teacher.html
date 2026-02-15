@@ -465,7 +465,7 @@
         }
 
         // Exam upload and management
-        function uploadExam() {
+        async function uploadExam() {
             const classNum = document.getElementById('exam-class').value;
             const examName = document.getElementById('exam-name').value.trim();
             const examDesc = document.getElementById('exam-description').value.trim();
@@ -482,36 +482,67 @@
                 return;
             }
             
+            messageDiv.innerHTML = '<span class="message info">⏳ جاري رفع الامتحان...</span>';
+            
             let imagesData = [];
             let loadedCount = 0;
             
             Array.from(files).forEach((file, index) => {
                 const reader = new FileReader();
-                reader.onload = function(e) {
+                reader.onload = async function(e) {
                     imagesData[index] = e.target.result;
                     loadedCount++;
                     
                     if (loadedCount === files.length) {
-                        const exams = JSON.parse(localStorage.getItem('exams') || '[]');
-                        exams.unshift({
-                            id: Date.now().toString(),
-                            class: parseInt(classNum),
-                            name: examName,
-                            description: examDesc,
-                            images: imagesData,
-                            date: new Date().toISOString().split('T')[0]
-                        });
-                        localStorage.setItem('exams', JSON.stringify(exams));
-                        document.getElementById('exam-class').value = '';
-                        document.getElementById('exam-name').value = '';
-                        document.getElementById('exam-description').value = '';
-                        document.getElementById('exam-file').value = '';
-                        messageDiv.innerHTML = '<span class="message success">✅ تم رفع الامتحان بنجاح (' + files.length + ' صورة)!</span>';
-                        renderAllExams();
-                        setTimeout(() => messageDiv.innerHTML = '', 3000);
+                        try {
+                            // حفظ في Firebase
+                            const examId = Date.now().toString();
+                            const examData = {
+                                id: examId,
+                                class: parseInt(classNum),
+                                name: examName,
+                                description: examDesc,
+                                images: imagesData,
+                                date: new Date().toISOString().split('T')[0],
+                                uploadedBy: 'teacher'
+                            };
+                            
+                            // حفظ في Firestore
+                            await setDoc(doc(db, 'exams', examId), examData);
+                            
+                            // حفظ في localStorage أيضاً (نسخة احتياطية)
+                            const localExams = JSON.parse(localStorage.getItem('exams') || '[]');
+                            localExams.unshift(examData);
+                            localStorage.setItem('exams', JSON.stringify(localExams));
+                            
+                            document.getElementById('exam-class').value = '';
+                            document.getElementById('exam-name').value = '';
+                            document.getElementById('exam-description').value = '';
+                            document.getElementById('exam-file').value = '';
+                            messageDiv.innerHTML = '<span class="message success">✅ تم رفع الامتحان بنجاح على السحابة! (' + files.length + ' صورة)</span>';
+                            renderAllExams();
+                            loadExamsFromCloud();
+                            setTimeout(() => messageDiv.innerHTML = '', 3000);
+                        } catch (error) {
+                            console.error('خطأ في الرفع:', error);
+                            messageDiv.innerHTML = '<span class="message error">❌ حدث خطأ في الرفع: ' + error.message + '</span>';
+                        }
                     }
                 };
                 reader.readAsDataURL(file);
+            });
+        }
+        
+        // تحميل الامتحانات من Firebase
+        function loadExamsFromCloud() {
+            const q = query(collection(db, 'exams'));
+            onSnapshot(q, (snapshot) => {
+                const exams = [];
+                snapshot.forEach((doc) => {
+                    exams.push(doc.data());
+                });
+                localStorage.setItem('exams', JSON.stringify(exams));
+                renderAllExams();
             });
         }
 
@@ -676,6 +707,7 @@
             // Final counts update
             updateCounts();
             renderAllExams();
+            loadExamsFromCloud();
         });
     </script>
 

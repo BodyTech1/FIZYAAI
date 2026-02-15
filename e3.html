@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>الصف الثالث الثانوي - الامتحانات</title>
-    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
    <nav>
@@ -38,7 +38,7 @@
         <p>&copy; 2026 منصة فزيائي - جميع الحقوق محفوظة</p>
     </footer>
 
-    <script type="module" src="../script.js"></script>
+    <script type="module" src="script.js"></script>
     <script>
         function initDarkMode(){
             const isDark = localStorage.getItem('darkMode')==='true';
@@ -205,6 +205,38 @@
             checkTeacherLogin();
             renderExams();
         });
+    </script>
+    <script type="module">
+        import { getFirestore, collection, query, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyDimAkjqtt8nl4Her0vqtHVMu4xkluUuqs",
+            authDomain: "fizyai.firebaseapp.com",
+            projectId: "fizyai",
+            storageBucket: "fizyai.firebasestorage.app",
+            messagingSenderId: "172902934430",
+            appId: "1:172902934430:web:ab440e76ef738e5499588f"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        // تحميل الامتحانات من Firebase
+        function loadExamsFromCloud() {
+            const q = query(collection(db, 'exams'));
+            onSnapshot(q, (snapshot) => {
+                const exams = [];
+                snapshot.forEach((doc) => {
+                    exams.push(doc.data());
+                });
+                localStorage.setItem('exams', JSON.stringify(exams));
+                renderExams();
+            });
+        }
+        
+        // استدعاء تحميل البيانات من السحابة عند فتح الصفحة
+        loadExamsFromCloud();
     </script>
 </body>
 </html>
