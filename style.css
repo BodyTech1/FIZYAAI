@@ -2,26 +2,32 @@
    الألوان الأساسية والمتغيرات العامة
    ============================================ */
 :root {
-    --primary-color: #14213d;
-    --primary-light: #3a5f84;
-    --primary-dark: #0a1628;
-    --secondary-color: #fca311;
-    --accent-color: #d00000;
-    --success-color: #2ecc71;
-    --warning-color: #f39c12;
-    --danger-color: #d00000;
-    --black-color: #000000;
-    --bg-color: #f8f9fa;
-    --bg-light: #ffffff;
-    --text-color: #000000;
-    --text-light: #333333;
-    --text-heading: #000000;
-    --text-body: #000000;
-    --text-secondary: #333333;
-    --nav-text-color: #ffffff;
-    --border-color: #e0e6ed;
-    --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 8px 25px rgba(0, 0, 0, 0.15);
+    --primary-color: #0b5ed7; /* calm blue */
+    --primary-light: #3b82f6;
+    --primary-dark: #083a8a;
+    --secondary-color: #0ea5a4; /* teal accent */
+    --accent-color: #ffb703;
+    --success-color: #16a34a;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+    --black-color: #0b1724;
+    --bg-color: #f6f9fc; /* soft page background */
+    --bg-light: #ffffff; /* card/background */
+    --text-color: #0b1724;
+    --text-light: #64748b;
+    --text-heading: #06152a;
+    --text-body: #0b1724;
+    --text-secondary: #6b7280;
+    --nav-text-color: #0b1724;
+    --border-color: #e6eef8;
+    --shadow: 0 6px 18px rgba(11,23,36,0.06);
+    --shadow-lg: 0 10px 30px rgba(11,23,36,0.08);
+    --radius: 12px;
+    /* Animation / timing */
+    --anim-fast: 150ms;
+    --anim-medium: 320ms;
+    --anim-slow: 520ms;
+    --easing-smooth: cubic-bezier(.22,.9,.31,1);
 }
 
 /* الوضع الليلي */
@@ -32,7 +38,7 @@ body.dark-mode {
     --primary-dark: #0a1628;
     --secondary-color: #FACC15;
     --accent-color: #ff6b6b;
-    --bg-color: #000000;
+    --bg-color: #14213d;
     --bg-light: #2d2d2d;
     --text-color: #ffffff;
     --text-light: #e0e0e0;
@@ -61,7 +67,8 @@ body {
     color: var(--text-color);
     direction: rtl;
     text-align: right;
-    line-height: 1.6;
+    line-height: 1.75;
+    font-size: 16px;
     overflow-x: hidden;
 }
 
@@ -69,27 +76,30 @@ body {
    Navigation Bar - شريط التنقل
    ============================================ */
 nav {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
-    padding: 1rem 2rem;
-    box-shadow: var(--shadow);
+    background: var(--bg-light);
+    padding: 0.6rem 1rem;
+    box-shadow: none;
+    border-bottom: 1px solid var(--border-color);
     position: sticky;
     top: 0;
     z-index: 100;
 }
 
 nav .navbar {
-    max-width: 1200px;
+    width: 100%;
+    max-width: 100%;
     margin: 0 auto;
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
+    padding: 0.1rem 2rem;
 }
 
 nav .logo {
-    font-size: 1.8rem;
+    font-size: 1.1rem;
     font-weight: bold;
-    color: var(--secondary-color);
+    color: var(--primary-color);
     text-decoration: none;
     display: flex;
     align-items: center;
@@ -97,17 +107,18 @@ nav .logo {
 }
 
 nav .navbar a, nav .navbar button {
-    color: var(--nav-text-color);
+    color: var(--text-body);
     text-decoration: none;
-    margin-left: 1.5rem;
-    font-weight: 500;
-    padding: 0.5rem 1rem;
-    border-radius: 5px;
+    margin-left: 1rem;
+    font-weight: 600;
+    padding: 0.15rem 0.4rem;
+    border-radius: calc(var(--radius) - 6px);
+    font-size: 0.8rem;
 }
 
 nav .navbar a:hover {
     color: var(--secondary-color);
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(11,23,36,0.04);
 }
 
 /* Dark Mode Button */
@@ -224,23 +235,23 @@ nav .navbar a:hover {
    Containers - الحاويات الرئيسية
    ============================================ */
 .container {
-    max-width: 500px;
-    margin: 60px auto;
+    width: 100%;
+    margin: 20px 0;
     background: var(--bg-light);
-    padding: 40px 30px;
-    border-radius: 12px;
-    box-shadow: var(--shadow-lg);
+    padding: 30px 20px;
+    border-radius: 0;
+    box-shadow: none;
     text-align: center;
     animation: slideUp 0.5s ease;
 }
 
 .container-large {
-    max-width: 900px;
-    margin: 40px auto;
+    width: 100%;
+    margin: 0;
     background: var(--bg-light);
-    padding: 40px;
-    border-radius: 12px;
-    box-shadow: var(--shadow);
+    padding: 30px 40px;
+    border-radius: 0;
+    box-shadow: none;
 }
 
 @keyframes slideUp {
@@ -286,8 +297,8 @@ input, textarea, select {
     width: 100%;
     padding: 12px 14px;
     margin: 10px 0;
-    border: 2px solid var(--border-color);
-    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: calc(var(--radius) - 4px);
     font-size: 1rem;
     font-family: inherit;
     transition: all 0.3s ease;
@@ -326,15 +337,15 @@ textarea {
    ============================================ */
 button, .btn {
     width: 100%;
-    padding: 12px 20px;
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
-    color: var(--nav-text-color);
+    padding: 12px 18px;
+    background-color: var(--primary-color);
+    color: #fff;
     border: none;
-    border-radius: 8px;
+    border-radius: var(--radius);
     cursor: pointer;
     font-size: 1rem;
     font-weight: 600;
-    transition: all 0.3s ease;
+    transition: transform var(--anim-fast) var(--easing-smooth), box-shadow var(--anim-fast) var(--easing-smooth), opacity var(--anim-fast);
     margin: 10px 0;
     text-decoration: none;
     display: inline-block;
@@ -342,14 +353,12 @@ button, .btn {
 }
 
 button:hover, .btn:hover {
-    transform: translateY(-2px);
+    transform: translateY(-3px);
     box-shadow: var(--shadow-lg);
-    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-color) 100%);
+    opacity: 0.98;
 }
 
-button:active {
-    transform: translateY(0);
-}
+button:active { transform: translateY(-1px); }
 
 /* أنواع أزرار مختلفة */
 .btn-success {
@@ -403,8 +412,8 @@ table {
 }
 
 thead {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
-    color: var(--nav-text-color);
+    background: transparent;
+    color: var(--text-secondary);
 }
 
 th {
@@ -536,18 +545,15 @@ hr {
    ============================================ */
 .card {
     background: var(--bg-light);
-    border-radius: 12px;
-    padding: 20px;
-    margin: 15px 0;
-    box-shadow: var(--shadow);
-    transition: all 0.3s ease;
-    border-left: 4px solid var(--primary-color);
+    border-radius: var(--radius);
+    padding: 22px;
+    margin: 18px 0;
+    box-shadow: 0 2px 8px rgba(11,23,36,0.04);
+    transition: transform var(--anim-medium) var(--easing-smooth), box-shadow var(--anim-medium);
+    border: 1px solid var(--border-color);
 }
 
-.card:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--shadow-lg);
-}
+.card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); }
 
 .card h3 {
     margin-top: 0;
@@ -719,16 +725,13 @@ footer a {
 .exam-card {
     background: var(--bg-light);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
+    border-radius: var(--radius);
     overflow: hidden;
-    box-shadow: var(--shadow);
-    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(11,23,36,0.04);
+    transition: transform var(--anim-medium) var(--easing-smooth), box-shadow var(--anim-medium);
 }
 
-.exam-card:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--shadow-lg);
-}
+.exam-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); }
 
 .exam-card-images {
     display: grid;
@@ -797,6 +800,90 @@ footer a {
 /* Navbar secondary text color */
 #teacher-dashboard {
     color: var(--secondary-color);
+}
+
+/* ============================================
+   Animation & polish - تحسين الانيميشن والانتقالات
+   ============================================ */
+
+/* Global smoother transitions */
+* {
+    transition-duration: var(--anim-medium);
+    transition-timing-function: var(--easing-smooth);
+}
+
+/* Nav subtle backdrop and item transitions */
+nav {
+    backdrop-filter: blur(6px);
+    background: linear-gradient(135deg, rgba(20,33,61,0.95) 0%, rgba(58,95,132,0.95) 100%);
+    transition: background var(--anim-medium) var(--easing-smooth), box-shadow var(--anim-medium) var(--easing-smooth);
+}
+
+nav .navbar a, nav .navbar button {
+    transition: transform var(--anim-fast) var(--easing-smooth), background-color var(--anim-fast) var(--easing-smooth);
+}
+
+nav .navbar a:hover, nav .navbar button:hover {
+    transform: translateY(-3px);
+}
+
+/* Containers: gentle entrance */
+.container, .container-large {
+    animation: fadeInUp var(--anim-slow) var(--easing-smooth);
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Buttons: subtle lift and shadow */
+.btn, button {
+    transition: transform var(--anim-fast) var(--easing-smooth), box-shadow var(--anim-fast) var(--easing-smooth), background-color var(--anim-fast);
+}
+.btn:hover, button:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+.btn:active, button:active { transform: translateY(-1px); }
+
+/* Cards and exam-cards: softer hover */
+.card, .exam-card {
+    will-change: transform, box-shadow;
+    transition: transform var(--anim-medium) var(--easing-smooth), box-shadow var(--anim-medium) var(--easing-smooth), opacity var(--anim-medium);
+}
+.card:hover, .exam-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-lg); }
+
+/* Table row hover refined */
+tbody tr:hover {
+    background-color: rgba(0,0,0,0.03);
+    transform: none;
+}
+
+/* Inputs focus ring */
+input:focus, textarea:focus, select:focus {
+    box-shadow: 0 6px 18px rgba(20,33,61,0.08);
+    transform: translateZ(0);
+}
+
+/* Dropdown animation */
+.dropdown-content {
+    transform-origin: top right;
+    transition: transform var(--anim-medium) var(--easing-smooth), opacity var(--anim-medium);
+}
+.dropdown-content.active { transform: translateY(0); opacity: 1; }
+
+/* Message transitions */
+#message, .message { transition: opacity var(--anim-medium), transform var(--anim-medium); }
+
+/* Images flex smoothing */
+.images-flex img { transition: transform var(--anim-medium) var(--easing-smooth), box-shadow var(--anim-medium); }
+.images-flex img:hover { transform: scale(1.02); box-shadow: var(--shadow); }
+
+/* Small helpers for staged reveal */
+.reveal { opacity: 0; transform: translateY(10px); animation: revealUp var(--anim-medium) forwards; }
+@keyframes revealUp { to { opacity: 1; transform: translateY(0); } }
+
+/* Reduce motion preference */
+@media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
 }
 
 /* Exam list item styling */

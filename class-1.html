@@ -17,7 +17,7 @@
     <!-- Navigation Bar -->
     <nav>
         <div class="navbar">
-            <a href="index.html" class="logo">🔥 فزيائي</a>
+            <a href="index.html" class="logo">فزيائي</a>
             <div>
                 <div class="dropdown">
                     <a href="#">📚 الصفوف</a>
@@ -60,7 +60,8 @@
     </footer>
 
     <script type="module" src="script.js"></script>
-    <script>
+</body>
+</html>
         function initDarkMode() {
             const isDark = localStorage.getItem('darkMode') === 'true';
             const btn = document.getElementById('dark-mode-btn');
@@ -93,7 +94,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             initDarkMode();
             checkTeacherLogin();
-            loadLessons('1');
+            // لا نستدعى loadLessons هنا - سيتم استدعاؤها من Firebase
 
             const dropdownToggle = document.querySelector('.dropdown > a');
             const dropdownContent = document.querySelector('.dropdown-content');
@@ -135,8 +136,39 @@
                     }
                     container.appendChild(card);
                 });
+            } else {
+                container.innerHTML = '<p class="empty-state">لا توجد دروس متاحة حالياً</p>';
             }
         }
+    </script>
+    <script type="module">
+        import { getFirestore, collection, query, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyDimAkjqtt8nl4Her0vqtHVMu4xkluUuqs",
+            authDomain: "fizyai.firebaseapp.com",
+            projectId: "fizyai",
+            storageBucket: "fizyai.firebasestorage.app",
+            messagingSenderId: "172902934430",
+            appId: "1:172902934430:web:ab440e76ef738e5499588f"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        // تحميل الدروس من Firebase
+        const q = query(collection(db, 'lessons'));
+        onSnapshot(q, (snapshot) => {
+            const lessons = [];
+            snapshot.forEach((doc) => {
+                lessons.push(doc.data());
+            });
+            console.log('تم تحميل الدروس من Firebase:', lessons);
+            localStorage.setItem('lessons', JSON.stringify(lessons));
+            // استدعاء loadLessons بعد حفظ البيانات
+            window.loadLessons('1');
+        });
     </script>
 </body>
 </html>

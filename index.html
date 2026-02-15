@@ -18,7 +18,7 @@
     <!-- Navigation Bar -->
     <nav>
         <div class="navbar">
-            <a href="index.html" class="logo">🔥 فزيائي</a>
+            <a href="index.html" class="logo">فزيائي</a>
             <div>
                 <div class="dropdown">
                     <a href="#">📚 الصفوف</a>
@@ -73,9 +73,17 @@
         </div>
 
         <hr>
+        <!-- Meetings Section (buttons view) -->
+        <div class="container-large">
+            <h1>📅 اجتماعات زووم</h1>
+            <p class="description-text">انضم للاجتماعات الحية التي ينشئها المدرس. زر الانضمام يفتح قبل 5 دقائق من الموعد.</p>
+            <div id="index-meetings-list" class="meetings-list">
+                <!-- buttons injected here -->
+            </div>
+        </div>
          <div class="container-large">
         <h1>📝 الامتحانات</h1>
-        <p class="description-text">رفع ومشاركة صور الامتحانات لكل صف. يستطيع المدرس فقط رفع الامتحانات.</p>
+       
 <a href="e1.html">
         <div class="cards-grid">
             <div class="card">
@@ -97,12 +105,40 @@
         </div>
 </a>
     </div>
-        <hr
-        <div class="center-section">
-            <h2>هل أنت طالب جديد؟</h2>
-            <p class="center-text">انضم إلينا الآن واستمتع بتعلم أفضل</p>
-            <a href="register.html" class="btn">إنشاء حساب جديد</a>
-            <p class="center-link">لديك حساب بالفعل? <a href="login.html">سجل دخولك هنا</a></p>
+        <hr>
+
+ <div class="container-large">
+        <h1>📚 دروس الفيزياء</h1>
+       
+<a href="class-1.html">
+        <div class="cards-grid">
+            <div class="card">
+                <h3>الصف الأول الثانوي</h3>
+                
+            </div>
+</a>
+<a href="class-2.html">
+            <div class="card">
+                <h3>الصف الثاني الثانوي</h3>
+                
+            </div>
+</a>
+<a href="class-3.html">
+            <div class="card">
+                <h3>الصف الثالث الثانوي</h3>
+                
+            </div>
+        </div>
+</a>
+    </div>
+
+
+        <hr>
+      
+
+        <div class="container-large">
+            <h1>📍 مراكز سنتر</h1>
+            <div id="index-centers-list" style="width:100%;"></div>
         </div>
     </div>
 
@@ -111,89 +147,8 @@
         <p>&copy; 2026 منصة فزيائي - جميع الحقوق محفوظة</p>
     </footer>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyDimAkjqtt8nl4Her0vqtHVMu4xkluUuqs",
-            authDomain: "fizyai.firebaseapp.com",
-            projectId: "fizyai",
-            storageBucket: "fizyai.firebasestorage.app",
-            messagingSenderId: "172902934430",
-            appId: "1:172902934430:web:ab440e76ef738e5499588f"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        console.log("🔥 Firebase Connected Successfully");
-    </script>
+    <!-- Google Maps JS API (replace YOUR_GOOGLE_MAPS_API_KEY) -->
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&callback=initMap"></script>
     <script type="module" src="script.js"></script>
-    <script>
-        function initDarkMode() {
-            const isDark = localStorage.getItem('darkMode') === 'true';
-            const btn = document.getElementById('dark-mode-btn');
-            if (isDark) {
-                document.body.classList.add('dark-mode');
-                if (btn) btn.textContent = '☀️';
-            } else {
-                document.body.classList.remove('dark-mode');
-                if (btn) btn.textContent = '🌙';
-            }
-        }
-
-        function toggleDarkMode() {
-            const isDark = localStorage.getItem('darkMode') === 'true';
-            const newState = !isDark;
-            localStorage.setItem('darkMode', newState);
-            initDarkMode();
-        }
-
-        function checkTeacherLogin() {
-            const isTeacher = localStorage.getItem('isTeacher') === 'true';
-            const dashboardBtn = document.getElementById('teacher-dashboard');
-            const logoutBtn = document.getElementById('logout-btn');
-            const userName = localStorage.getItem('userName');
-
-            if (isTeacher) {
-                if (dashboardBtn) dashboardBtn.style.display = 'inline-block';
-            }
-
-            // Show logout button for teachers or logged-in students
-            if (logoutBtn) {
-                if (isTeacher || userName) logoutBtn.style.display = 'inline-block';
-                else logoutBtn.style.display = 'none';
-            }
-        }
-
-        function logout() {
-            if (confirm('هل تريد تسجيل الخروج؟')) {
-                localStorage.removeItem('isTeacher');
-                localStorage.removeItem('userName');
-                location.href = 'index.html';
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            initDarkMode();
-            checkTeacherLogin();
-
-            const dropdownToggle = document.querySelector('.dropdown > a');
-            const dropdownContent = document.querySelector('.dropdown-content');
-            
-            if (dropdownToggle) {
-                dropdownToggle.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    dropdownContent.classList.toggle('active');
-                    dropdownToggle.classList.toggle('active');
-                });
-                
-                document.addEventListener('click', function(e) {
-                    if (!e.target.closest('.dropdown')) {
-                        dropdownContent.classList.remove('active');
-                        dropdownToggle.classList.remove('active');
-                    }
-                });
-            }
-        });
-    </script>
 </body>
 </html>
