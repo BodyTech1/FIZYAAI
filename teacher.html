@@ -109,7 +109,7 @@
                     </div>
                 </div>
                 <textarea id="exam-description" placeholder="📑 وصف الامتحان (اختياري)" class="form-textarea"></textarea>
-                <button onclick="uploadExam()" class="btn btn-form">⬆️ رفع الامتحان</button>
+                <button onclick="uploadExamFirebase()" class="btn btn-form">⬆️ رفع الامتحان</button>
                 <p id="exam-message" class="message-text"></p>
             </div>
         </section>
@@ -209,6 +209,102 @@
     </footer>
 
     <script type="module" src="script.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, query, where, onSnapshot, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDimAkjqtt8nl4Her0vqtHVMu4xkluUuqs",
+            authDomain: "fizyai.firebaseapp.com",
+            projectId: "fizyai",
+            storageBucket: "fizyai.firebasestorage.app",
+            messagingSenderId: "172902934430",
+            appId: "1:172902934430:web:ab440e76ef738e5499588f"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // تحميل الامتحانات من Firebase
+        window.loadExamsFromCloud = function() {
+            const q = query(collection(db, 'exams'));
+            onSnapshot(q, (snapshot) => {
+                const exams = [];
+                snapshot.forEach((docSnap) => {
+                    exams.push(docSnap.data());
+                });
+                localStorage.setItem('exams', JSON.stringify(exams));
+                window.renderAllExams();
+            });
+        }
+
+        // تحديث دالة الرفع
+        window.uploadExamFirebase = async function() {
+            const classNum = document.getElementById('exam-class').value;
+            const examName = document.getElementById('exam-name').value.trim();
+            const examDesc = document.getElementById('exam-description').value.trim();
+            const files = document.getElementById('exam-file').files;
+            const messageDiv = document.getElementById('exam-message');
+            
+            if (!classNum || !examName || files.length === 0) {
+                messageDiv.innerHTML = '<span class="message error">❌ اختر الصف واسم الامتحان والصور</span>';
+                return;
+            }
+            
+            if (files.length > 4) {
+                messageDiv.innerHTML = '<span class="message error">❌ لا تستطيع رفع أكثر من 4 صور</span>';
+                return;
+            }
+            
+            messageDiv.innerHTML = '<span class="message info">⏳ جاري رفع الامتحان...</span>';
+            
+            let imagesData = [];
+            let loadedCount = 0;
+            
+            Array.from(files).forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    imagesData[index] = e.target.result;
+                    loadedCount++;
+                    
+                    if (loadedCount === files.length) {
+                        try {
+                            const examId = Date.now().toString();
+                            const examData = {
+                                id: examId,
+                                class: parseInt(classNum),
+                                name: examName,
+                                description: examDesc,
+                                images: imagesData,
+                                date: new Date().toISOString().split('T')[0],
+                                uploadedBy: 'teacher'
+                            };
+                            
+                            await setDoc(doc(db, 'exams', examId), examData);
+                            
+                            const localExams = JSON.parse(localStorage.getItem('exams') || '[]');
+                            localExams.unshift(examData);
+                            localStorage.setItem('exams', JSON.stringify(localExams));
+                            
+                            document.getElementById('exam-class').value = '';
+                            document.getElementById('exam-name').value = '';
+                            document.getElementById('exam-description').value = '';
+                            document.getElementById('exam-file').value = '';
+                            messageDiv.innerHTML = '<span class="message success">✅ تم رفع الامتحان بنجاح على السحابة! (' + files.length + ' صورة)</span>';
+                            window.renderAllExams();
+                            window.loadExamsFromCloud();
+                            setTimeout(() => messageDiv.innerHTML = '', 3000);
+                        } catch (error) {
+                            console.error('خطأ في الرفع:', error);
+                            messageDiv.innerHTML = '<span class="message error">❌ حدث خطأ: ' + error.message + '</span>';
+                        }
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+    </script>
     <script>
         function initDarkMode() {
             const isDark = localStorage.getItem('darkMode') === 'true';
@@ -464,86 +560,10 @@
             alert('فتح محرر بيانات الطالب (ليس مفعّل حالياً)');
         }
 
-        // Exam upload and management
-        async function uploadExam() {
-            const classNum = document.getElementById('exam-class').value;
-            const examName = document.getElementById('exam-name').value.trim();
-            const examDesc = document.getElementById('exam-description').value.trim();
-            const files = document.getElementById('exam-file').files;
-            const messageDiv = document.getElementById('exam-message');
-            
-            if (!classNum || !examName || files.length === 0) {
-                messageDiv.innerHTML = '<span class="message error">❌ اختر الصف واسم الامتحان والصور</span>';
-                return;
-            }
-            
-            if (files.length > 4) {
-                messageDiv.innerHTML = '<span class="message error">❌ لا تستطيع رفع أكثر من 4 صور</span>';
-                return;
-            }
-            
-            messageDiv.innerHTML = '<span class="message info">⏳ جاري رفع الامتحان...</span>';
-            
-            let imagesData = [];
-            let loadedCount = 0;
-            
-            Array.from(files).forEach((file, index) => {
-                const reader = new FileReader();
-                reader.onload = async function(e) {
-                    imagesData[index] = e.target.result;
-                    loadedCount++;
-                    
-                    if (loadedCount === files.length) {
-                        try {
-                            // حفظ في Firebase
-                            const examId = Date.now().toString();
-                            const examData = {
-                                id: examId,
-                                class: parseInt(classNum),
-                                name: examName,
-                                description: examDesc,
-                                images: imagesData,
-                                date: new Date().toISOString().split('T')[0],
-                                uploadedBy: 'teacher'
-                            };
-                            
-                            // حفظ في Firestore
-                            await setDoc(doc(db, 'exams', examId), examData);
-                            
-                            // حفظ في localStorage أيضاً (نسخة احتياطية)
-                            const localExams = JSON.parse(localStorage.getItem('exams') || '[]');
-                            localExams.unshift(examData);
-                            localStorage.setItem('exams', JSON.stringify(localExams));
-                            
-                            document.getElementById('exam-class').value = '';
-                            document.getElementById('exam-name').value = '';
-                            document.getElementById('exam-description').value = '';
-                            document.getElementById('exam-file').value = '';
-                            messageDiv.innerHTML = '<span class="message success">✅ تم رفع الامتحان بنجاح على السحابة! (' + files.length + ' صورة)</span>';
-                            renderAllExams();
-                            loadExamsFromCloud();
-                            setTimeout(() => messageDiv.innerHTML = '', 3000);
-                        } catch (error) {
-                            console.error('خطأ في الرفع:', error);
-                            messageDiv.innerHTML = '<span class="message error">❌ حدث خطأ في الرفع: ' + error.message + '</span>';
-                        }
-                    }
-                };
-                reader.readAsDataURL(file);
-            });
-        }
-        
-        // تحميل الامتحانات من Firebase
-        function loadExamsFromCloud() {
-            const q = query(collection(db, 'exams'));
-            onSnapshot(q, (snapshot) => {
-                const exams = [];
-                snapshot.forEach((doc) => {
-                    exams.push(doc.data());
-                });
-                localStorage.setItem('exams', JSON.stringify(exams));
-                renderAllExams();
-            });
+        // Exam upload and management (Old version - now using uploadExamFirebase)
+        function uploadExam() {
+            // هذه الدالة تم استبدالها بـ uploadExamFirebase في module بالأعلى
+            uploadExamFirebase();
         }
 
         function renderAllExams() {
@@ -707,7 +727,7 @@
             // Final counts update
             updateCounts();
             renderAllExams();
-            loadExamsFromCloud();
+            setTimeout(() => window.loadExamsFromCloud(), 500);
         });
     </script>
 

@@ -203,7 +203,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             initDarkMode();
             checkTeacherLogin();
-            renderExams();
+            // لا نستدعى renderExams هنا - سيتم استدعاؤها من Firebase
         });
     </script>
     <script type="module">
@@ -222,21 +222,18 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         
-        // تحميل الامتحانات من Firebase
-        function loadExamsFromCloud() {
-            const q = query(collection(db, 'exams'));
-            onSnapshot(q, (snapshot) => {
-                const exams = [];
-                snapshot.forEach((doc) => {
-                    exams.push(doc.data());
-                });
-                localStorage.setItem('exams', JSON.stringify(exams));
-                renderExams();
+        // تحميل الامتحانات من Firebase - اول ما تفتح الصفحة
+        const q = query(collection(db, 'exams'));
+        onSnapshot(q, (snapshot) => {
+            const exams = [];
+            snapshot.forEach((doc) => {
+                exams.push(doc.data());
             });
-        }
-        
-        // استدعاء تحميل البيانات من السحابة عند فتح الصفحة
-        loadExamsFromCloud();
+            console.log('تم تحميل الامتحانات من Firebase:', exams);
+            localStorage.setItem('exams', JSON.stringify(exams));
+            // استدعاء render بعد حفظ البيانات مباشرة
+            window.renderExams();
+        });
     </script>
 </body>
 </html>
