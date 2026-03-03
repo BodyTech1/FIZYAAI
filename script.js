@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, deleteUser as deleteAuthUser, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc, collection, query, where, onSnapshot, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // بيانات مشروع فزيائي الخاصة بك
@@ -145,9 +145,6 @@ window.approveUser = async function(id) {
     await updateDoc(doc(db, "users", id), { status: "approved" });
 };
 
-// استيراد دالة الحذف الخاصة بالـ Authentication
-import { deleteUser as deleteAuthUser } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
 window.deleteUser = async function(id) {
     // حذف فوري بدون رسائل
     await deleteDoc(doc(db, "users", id));
@@ -158,9 +155,6 @@ if (document.getElementById("welcome-name")) {
     document.getElementById("welcome-name").innerText = "أهلاً بك يا " + localStorage.getItem("userName");
 }
 
-
-// استيراد دالة مراقبة حالة المستخدم (تأكد أنها موجودة في أول الملف مع الـ imports)
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 function protectPhysicsPlatform() {
     // قائمة الصفحات اللي لازم الطالب يكون مسجل عشان يشوفها
@@ -212,27 +206,8 @@ function protectPhysicsPlatform() {
 protectPhysicsPlatform();
 
 /* ============================================
-   Dark Mode & UI Functions (Global)
+   UI Functions (Global)
    ============================================ */
-
-window.initDarkMode = function() {
-    const isDark = localStorage.getItem('darkMode') === 'true';
-    const btn = document.getElementById('dark-mode-btn');
-    if (isDark) {
-        document.body.classList.add('dark-mode');
-        if (btn) btn.textContent = '☀️';
-    } else {
-        document.body.classList.remove('dark-mode');
-        if (btn) btn.textContent = '🌙';
-    }
-};
-
-window.toggleDarkMode = function() {
-    const isDark = localStorage.getItem('darkMode') === 'true';
-    const newState = !isDark;
-    localStorage.setItem('darkMode', newState);
-    window.initDarkMode();
-};
 
 window.checkTeacherLogin = function() {
     const isTeacher = localStorage.getItem('isTeacher') === 'true';
@@ -252,6 +227,25 @@ window.checkTeacherLogin = function() {
             logoutBtn.style.display = 'none';
         }
     }
+};
+
+// Hide sign-in / register links when a user is logged-in
+window.toggleAuthLinks = function() {
+    const userName = localStorage.getItem('userName');
+    const isTeacher = localStorage.getItem('isTeacher') === 'true';
+
+    const loginLinks = document.querySelectorAll('a[href="login.html"]');
+    const registerLinks = document.querySelectorAll('a[href="register.html"]');
+
+    const shouldHide = !!userName || isTeacher;
+
+    loginLinks.forEach(a => {
+        a.style.display = shouldHide ? 'none' : '';
+    });
+
+    registerLinks.forEach(a => {
+        a.style.display = shouldHide ? 'none' : '';
+    });
 };
 
 window.logout = function() {
@@ -291,9 +285,9 @@ window.initDropdownMenu = function() {
    ============================================ */
 
 document.addEventListener('DOMContentLoaded', function() {
-    window.initDarkMode();
     window.checkTeacherLogin();
     window.initDropdownMenu();
+    window.toggleAuthLinks();
 
     // Show welcome message on index
     if (document.getElementById("welcome-name")) {
@@ -303,42 +297,70 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Initialize lessons table on teacher page
-    const lessonsTable = document.getElementById('lessons-table');
-    if (lessonsTable) {
-        const lessons = JSON.parse(localStorage.getItem('lessons')) || [];
-        const rows = lessonsTable.querySelectorAll('tr');
-        if (lessons.length > 0 && rows.length === 1) {
-            rows[0].remove();
-        }
-        
-        lessons.forEach(lesson => {
-            const classMap = {
-                '1': 'الصف الأول الثانوي',
-                '2': 'الصف الثاني الثانوي',
-                '3': 'الصف الثالث الثانوي'
-            };
-            
-            const newRow = lessonsTable.insertRow();
-            newRow.setAttribute('data-id', lesson.id);
-            newRow.innerHTML = `
-                <td>${lesson.title}</td>
-                <td>${classMap[lesson.class]}</td>
-                <td>${lesson.description}</td>
-                <td>${lesson.date}</td>
-                <td>
-                    <button class="btn btn-warning btn-small" onclick="editLesson(this)">✏️ تعديل</button>
-                    <button class="btn btn-danger btn-small" onclick="deleteLesson(this)">🗑️ حذف</button>
-                </td>
-            `;
+    // only load teacher-specific data on teacher page
+    const path = location.pathname;
+    const isTeacherPage = path.includes('teacher.html');
+    
+    // ---------- responsive burger menu toggle ----------
+    const burgerIcon = document.querySelector('.burger');
+    const navItems = document.getElementById('nav-items');
+    if (burgerIcon && navItems) {
+        burgerIcon.addEventListener('click', () => {
+            navItems.classList.toggle('active');
         });
     }
+    
+    if (isTeacherPage) {
+        // Initialize lessons table on teacher page
+        const lessonsTable = document.getElementById('lessons-table');
+        if (lessonsTable) {
+            const lessons = JSON.parse(localStorage.getItem('lessons')) || [];
+            const rows = lessonsTable.querySelectorAll('tr');
+            if (lessons.length > 0 && rows.length === 1) {
+                rows[0].remove();
+            }
+            
+            lessons.forEach(lesson => {
+                const classMap = {
+                    '1': 'الصف الأول الثانوي',
+                    '2': 'الصف الثاني الثانوي',
+                    '3': 'الصف الثالث الثانوي'
+                };
+                
+                const newRow = lessonsTable.insertRow();
+                newRow.setAttribute('data-id', lesson.id);
+                newRow.innerHTML = `
+                    <td>${lesson.title}</td>
+                    <td>${classMap[lesson.class]}</td>
+                    <td>${lesson.description}</td>
+                    <td>${lesson.date}</td>
+                    <td>
+                        <button class="btn btn-warning btn-small" onclick="editLesson(this)">✏️ تعديل</button>
+                        <button class="btn btn-danger btn-small" onclick="deleteLesson(this)">🗑️ حذف</button>
+                    </td>
+                `;
+            });
+        }
 
-    // Load data from Firestore on initial page load
-    if (typeof window.loadExamsFromCloud === 'function') window.loadExamsFromCloud();
-    if (typeof window.loadLessonsFromCloud === 'function') window.loadLessonsFromCloud();
+        // Load data from Firestore on initial page load for teacher page only
+        if (typeof window.loadExamsFromCloud === 'function') window.loadExamsFromCloud();
+        if (typeof window.loadLessonsFromCloud === 'function') window.loadLessonsFromCloud();
+        
+        // Load teacher's videos
+        if (typeof window.loadTeacherVideos === 'function') window.loadTeacherVideos();
+        if (typeof window.loadVideosManagementTable === 'function') window.loadVideosManagementTable();
+    }
+    
+    // Load common data for all pages
     if (typeof window.loadMeetingsFromCloud === 'function') window.loadMeetingsFromCloud();
-    if (typeof window.loadCentersFromCloud === 'function') window.loadCentersFromCloud();
+    
+    // Check if on index page to load centers properly
+    const isIndexPage = !window.location.pathname.includes('.html') || window.location.pathname.includes('index.html');
+    if (isIndexPage && typeof window.loadCentersFromCloudIndex === 'function') {
+        window.loadCentersFromCloudIndex();
+    } else if (typeof window.loadCentersFromCloud === 'function') {
+        window.loadCentersFromCloud();
+    }
 });
 
 /* ============================================
@@ -360,7 +382,7 @@ window.deleteLesson = async function(button) {
         
         row.remove();
         if (typeof window.loadLessonsFromCloud === 'function') window.loadLessonsFromCloud();
-        alert('✅ تم حذف الدرس بنجاح');
+        
     } catch (error) {
         console.error('خطأ في الحذف:', error);
         alert('❌ حدث خطأ في حذف الدرس: ' + error.message);
@@ -381,7 +403,7 @@ window.editLesson = function(button) {
     });
     document.getElementById('lessonTitle').focus();
     
-    alert('تم تحميل بيانات الدرس. عدّل ما تريده ثم اضغط "إضافة الدرس" لحفظ التعديلات');
+    
 };
 
 window.joinMeeting = function(link) {
@@ -389,94 +411,276 @@ window.joinMeeting = function(link) {
     window.open(link, '_blank');
 };
 
-/* ============================================
-   Index Page - Meetings Management
-   ============================================ */
-
-window.loadMeetingsFromCloudIndex = function() {
-    const q = query(collection(db, 'meetings'));
-    onSnapshot(q, (snapshot) => {
-        const meetings = [];
-        snapshot.forEach(docSnap => meetings.push(docSnap.data()));
-        localStorage.setItem('meetings', JSON.stringify(meetings));
-        window.renderIndexMeetings();
-        window.updateIndexMeetingButtons();
-    });
-};
-
-window.renderIndexMeetings = function() {
-    const container = document.getElementById('index-meetings-list');
-    const meetings = JSON.parse(localStorage.getItem('meetings') || '[]');
-    if (!container) return;
-    container.innerHTML = '';
-    if (meetings.length === 0) {
-        container.innerHTML = '<div class="empty-cell">لا توجد اجتماعات حالياً</div>';
-        return;
+// Play video in a modal
+window.openVideoModal = function(videoId, title) {
+    let modal = document.getElementById('video-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'video-modal';
+        modal.style.cssText = `
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.9); display: none; z-index: 100000000;
+            align-items: center; justify-content: center;
+        `;
+        document.body.appendChild(modal);
     }
-    const classMap = { '1': 'الصف الأول الثانوي', '2': 'الصف الثاني الثانوي', '3': 'الصف الثالث الثانوي' };
-    meetings.forEach(m => {
-        const start = m.startTimestamp || (m.datetime ? new Date(m.datetime).getTime() : NaN);
-        const dt = new Date(start);
-        const dateStr = isNaN(dt) ? (m.datetime || '-') : dt.toLocaleDateString('ar-EG');
-        const timeStr = isNaN(dt) ? '-' : dt.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
-
-        const wrapper = document.createElement('div');
-        wrapper.className = 'meeting-item card';
-
-        const btn = document.createElement('a');
-        btn.className = 'btn btn-primary';
-        btn.id = 'idx-btn-' + m.id;
-        btn.style.width = '100%';
-        btn.style.textAlign = 'right';
-        btn.target = '_blank';
-        btn.rel = 'noopener';
-        btn.removeAttribute('href');
-        btn.style.pointerEvents = 'none';
-
-        const titleHtml = `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><div style="text-align:right"><strong>${classMap[m.class] || m.class}</strong><div style="font-size:0.9rem;color:#ffffff">${dateStr} — ${timeStr}</div></div><div id="idx-remaining-${m.id}" style="min-width:90px;text-align:left;font-weight:700">--:--</div></div>`;
-        btn.innerHTML = titleHtml;
-        wrapper.appendChild(btn);
-
-        container.appendChild(wrapper);
-    });
-};
-
-window.updateIndexMeetingButtons = function() {
-    const meetings = JSON.parse(localStorage.getItem('meetings') || '[]');
-    const now = Date.now();
-    meetings.forEach(m => {
-        const btn = document.getElementById('idx-btn-' + m.id);
-        const remEl = document.getElementById('idx-remaining-' + m.id);
-        if (!btn || !remEl) return;
-        const start = m.startTimestamp || (m.datetime ? new Date(m.datetime).getTime() : NaN);
-        if (isNaN(start)) { remEl.textContent = '--:--'; btn.disabled = true; return; }
-        const diff = start - now;
-        const enableAt = start - (5 * 60 * 1000);
-
-        if (now >= enableAt && now <= (start + (3 * 60 * 60 * 1000))) {
-            btn.href = m.link;
-            btn.style.pointerEvents = 'auto';
-            remEl.textContent = 'مفتوح الآن';
-        } else if (diff > 0) {
-            btn.removeAttribute('href');
-            btn.style.pointerEvents = 'none';
-            let remaining = diff;
-            const days = Math.floor(remaining / (1000 * 60 * 60 * 24));
-            remaining -= days * (1000 * 60 * 60 * 24);
-            const hours = Math.floor(remaining / (1000 * 60 * 60));
-            remaining -= hours * (1000 * 60 * 60);
-            const minutes = Math.floor(remaining / (1000 * 60));
-
-            const dStr = days > 0 ? `${days} ي ` : '';
-            const hStr = `${hours} س `;
-            const mStr = `${minutes} د `;
-            remEl.textContent = `${dStr}${hStr}${mStr}`;
-        } else {
-            btn.disabled = true;
-            remEl.textContent = 'انتهى';
+    
+    const iframeContainer = document.createElement('div');
+    iframeContainer.style.cssText = `
+        position: relative; width: 90%; max-width: 900px; aspect-ratio: 16/9;
+        background: #000; border-radius: 8px;
+    `;
+    
+    iframeContainer.innerHTML = `
+        <button onclick="closeVideoModal()" style="
+            position: absolute; top: 10px; right: 10px; z-index: 10001;
+            background: #ff4444; color: white; border: none; padding: 8px 12px;
+            border-radius: 4px; cursor: pointer; font-size: 16px;
+        ">✕</button>
+        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 1000; pointer-events: auto; border-radius: 8px;" id="video-modal-overlay"></div>
+        <iframe 
+            width="100%" height="100%" 
+            src="https://www.youtube.com/embed/${videoId}?autoplay=1" 
+            frameborder="0" allowfullscreen
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            style="border-radius: 8px;">
+        </iframe>
+    `;
+    
+    modal.innerHTML = '';
+    modal.appendChild(iframeContainer);
+    modal.style.display = 'flex';
+    
+    // Protect the overlay from right-click
+    const overlay = document.getElementById('video-modal-overlay');
+    if (overlay) {
+        overlay.addEventListener('contextmenu', (e) => { e.preventDefault(); e.stopPropagation(); return false; }, true);
+        overlay.addEventListener('mousedown', (e) => { if (e.button === 2) { e.preventDefault(); e.stopPropagation(); } }, true);
+    }
+    
+    // Close modal when clicking outside the iframe
+    modal.onclick = (e) => {
+        if (e.target === modal) {
+            closeVideoModal();
         }
-    });
+    };
 };
+
+// Close video modal
+window.closeVideoModal = function() {
+    const modal = document.getElementById('video-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+};
+
+// Protected YouTube player using IFrame API + overlays + watermark
+// This creates a protected modal player. To change the video, call
+// `openProtectedPlayer(videoId, title, description, pdfUrl)`
+window.openProtectedPlayer = function(videoId, title = '', description = '', pdfUrl = '') {
+    try {
+        // Ensure unique modal
+        let modal = document.getElementById('protected-video-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'protected-video-modal';
+            modal.className = 'protected-modal';
+
+            modal.innerHTML = `
+                <div class="protected-inner">
+                    <div class="protected-header">
+                        <div class="protected-title">${title}</div>
+                        <div class="protected-actions">
+                            <a class="protected-pdf" href="${pdfUrl || '#'}" target="_blank" rel="noopener">تحميل الملخص</a>
+                            <button id="protected-close-btn" class="protected-close">✕</button>
+                        </div>
+                    </div>
+
+                    <div class="protected-player-wrap">
+                        <!-- Invisible overlay to block YouTube native UI clicks -->
+                        <div id="protected-overlay" class="protected-overlay" title=""></div>
+
+                        <!-- container where YT.Player iframe will be injected -->
+                        <div id="protected-player" class="protected-player"></div>
+
+                        <!-- moving watermark -->
+                        <div id="protected-watermark" class="protected-watermark">محتوى محمي - منصة فزيائي</div>
+                    </div>
+
+                    <div class="protected-meta">
+                        <div class="protected-desc">${description || ''}</div>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+
+            // close handler
+            document.getElementById('protected-close-btn').addEventListener('click', () => {
+                window.closeProtectedPlayer();
+            });
+
+            // Clicking on background closes if clicked outside content
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) window.closeProtectedPlayer();
+            });
+
+            // Disable right click inside modal
+            modal.addEventListener('contextmenu', (e) => e.preventDefault());
+
+            // Prevent text selection in modal
+            modal.onselectstart = () => false;
+        }
+
+        // Show modal
+        modal.classList.add('active');
+        document.body.classList.add('protected-open');
+
+        // Load YouTube IFrame API if not loaded
+        if (!window.YT) {
+            // Insert script tag once
+            if (!document.getElementById('youtube-iframe-api')) {
+                const tag = document.createElement('script');
+                tag.id = 'youtube-iframe-api';
+                tag.src = 'https://www.youtube.com/iframe_api';
+                document.head.appendChild(tag);
+            }
+
+            // Poll until YT is ready
+            const waitForYT = setInterval(() => {
+                if (window.YT && window.YT.Player) {
+                    clearInterval(waitForYT);
+                    createProtectedPlayer(videoId);
+                }
+            }, 200);
+        } else {
+            createProtectedPlayer(videoId);
+        }
+
+        // start watermark animation
+        startProtectedWatermark();
+
+        // Block common keyboard shortcuts that reveal source or copy
+        window._protectedKeyHandler = function(e) {
+            // Block Ctrl+U, Ctrl+Shift+I/J, Ctrl+Shift+C, Ctrl+C
+            if ((e.ctrlKey && e.key === 'u') ||
+                (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j')) ||
+                (e.ctrlKey && e.shiftKey && (e.key === 'C' || e.key === 'c')) ||
+                (e.ctrlKey && (e.key === 'c' || e.key === 'C'))
+            ) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+        };
+        document.addEventListener('keydown', window._protectedKeyHandler, true);
+
+    } catch (err) {
+        console.error('openProtectedPlayer error', err);
+    }
+};
+
+// Create or replace YT.Player in protected-player
+function createProtectedPlayer(videoId) {
+    try {
+        // If a previous player exists, destroy it
+        if (window._protectedYTPlayer) {
+            try { window._protectedYTPlayer.destroy(); } catch(e){}
+            window._protectedYTPlayer = null;
+        }
+
+        window._protectedYTPlayer = new YT.Player('protected-player', {
+            videoId: videoId,
+            playerVars: {
+                rel: 0, // prevent suggested videos
+                modestbranding: 1, // hide youtube logo
+                disablekb: 1, // disable keyboard inside iframe
+                controls: 1,
+                iv_load_policy: 3, // hide annotations
+                fs: 1 // allow fullscreen
+            },
+            events: {
+                onReady: function(event) {
+                    // Autoplay when ready
+                    try { event.target.playVideo(); } catch(e){}
+                },
+                onStateChange: function(state) {
+                    // You can hook analytics here
+                }
+            }
+        });
+
+        // Ensure the overlay captures clicks (so native share/title can't be clicked)
+        const overlay = document.getElementById('protected-overlay');
+        if (overlay) {
+            overlay.style.display = 'block';
+            overlay.oncontextmenu = (e) => { e.preventDefault(); e.stopPropagation(); return false; };
+            overlay.onclick = (e) => e.preventDefault();
+            overlay.onmousedown = (e) => { if (e.button === 2) { e.preventDefault(); e.stopPropagation(); return false; } };
+            overlay.addEventListener('contextmenu', (e) => { e.preventDefault(); e.stopPropagation(); }, true);
+            overlay.addEventListener('mousedown', (e) => { if (e.button === 2) { e.preventDefault(); e.stopPropagation(); } }, true);
+        }
+        
+        // Also protect the player container itself
+        const playerContainer = document.getElementById('protected-player');
+        if (playerContainer) {
+            playerContainer.addEventListener('contextmenu', (e) => { e.preventDefault(); e.stopPropagation(); }, true);
+            playerContainer.addEventListener('mousedown', (e) => { if (e.button === 2) { e.preventDefault(); e.stopPropagation(); } }, true);
+        }
+
+    } catch (e) {
+        console.error('createProtectedPlayer error', e);
+    }
+}
+
+// Close protected player and cleanup
+window.closeProtectedPlayer = function() {
+    // destroy player
+    try { if (window._protectedYTPlayer) window._protectedYTPlayer.destroy(); } catch(e){}
+    window._protectedYTPlayer = null;
+
+    // stop watermark
+    stopProtectedWatermark();
+
+    const modal = document.getElementById('protected-video-modal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
+    document.body.classList.remove('protected-open');
+
+    // remove key handler
+    if (window._protectedKeyHandler) {
+        document.removeEventListener('keydown', window._protectedKeyHandler, true);
+        window._protectedKeyHandler = null;
+    }
+};
+
+// Watermark handling (random movement)
+let _protectedWatermarkTimer = null;
+function startProtectedWatermark() {
+    const wm = document.getElementById('protected-watermark');
+    if (!wm) return;
+    wm.style.opacity = '0.12';
+    moveWatermark();
+    _protectedWatermarkTimer = setInterval(moveWatermark, 4000);
+}
+function stopProtectedWatermark() {
+    clearInterval(_protectedWatermarkTimer);
+    _protectedWatermarkTimer = null;
+    const wm = document.getElementById('protected-watermark');
+    if (wm) wm.style.opacity = '0';
+}
+function moveWatermark() {
+    const wm = document.getElementById('protected-watermark');
+    if (!wm) return;
+    const parent = wm.parentElement;
+    const w = parent.clientWidth - wm.clientWidth - 40;
+    const h = parent.clientHeight - wm.clientHeight - 40;
+    const left = Math.max(10, Math.floor(Math.random() * Math.max(1, w)));
+    const top = Math.max(10, Math.floor(Math.random() * Math.max(1, h)));
+    wm.style.transform = `translate(${left}px, ${top}px)`;
+}
+
 
 /* ============================================
    Index Page - Centers Management
@@ -519,7 +723,7 @@ window.renderIndexCenters = function() {
         card.style.display = 'flex';
         card.style.justifyContent = 'space-between';
         card.style.alignItems = 'center';
-        card.innerHTML = `<div style="text-align:right"><strong>${c.name}</strong><div style="color:var(--text-secondary)">${c.address || ''}</div></div>`;
+        card.innerHTML = `<div style="text-align:right"><strong>${c.name}</strong><div style="color:var(--bg-color)">${c.address || ''}</div></div>`;
         const actions = document.createElement('div');
         actions.style.display = 'flex';
         actions.style.gap = '8px';
@@ -571,9 +775,8 @@ window.addCenter = async function(data) {
 window.editCenterPrompt = function(c) {
     const name = prompt('اسم المركز:', c.name) || c.name;
     const address = prompt('العنوان:', c.address || '') || c.address;
-    const lat = parseFloat(prompt('خط العرض:', c.lat)) || c.lat;
-    const lng = parseFloat(prompt('خط الطول:', c.lng)) || c.lng;
-    window.updateCenter({ id: c.id, name, address, lat, lng });
+    
+    window.updateCenter({ id: c.id, name, address,  });
 };
 
 window.updateCenter = async function(data) {
@@ -1106,26 +1309,6 @@ window.loadCentersFromCloud = function() {
 
 // ===== Teacher Dashboard Extra Functions =====
 
-// Dark mode functions
-window.initDarkMode = function() {
-    const isDark = localStorage.getItem('darkMode') === 'true';
-    const btn = document.getElementById('dark-mode-btn');
-    if (isDark) {
-        document.body.classList.add('dark-mode');
-        if (btn) btn.textContent = '☀️';
-    } else {
-        document.body.classList.remove('dark-mode');
-        if (btn) btn.textContent = '🌙';
-    }
-};
-
-window.toggleDarkMode = function() {
-    const isDark = localStorage.getItem('darkMode') === 'true';
-    const newState = !isDark;
-    localStorage.setItem('darkMode', newState);
-    window.initDarkMode();
-};
-
 window.logout = function() {
     if (confirm('هل تريد تسجيل الخروج؟')) {
         localStorage.removeItem('isTeacher');
@@ -1253,51 +1436,8 @@ window.editStudent = function(button) {
     alert('فتح محرر بيانات الطالب (ليس مفعّل حالياً)');
 };
 
-// Render all exams
-window.renderAllExams = function() {
-    const table = document.getElementById('exams-table');
-    if (!table) return;
-    const exams = JSON.parse(localStorage.getItem('exams') || '[]');
-    
-    if (exams.length === 0) {
-        table.innerHTML = '<tr><td colspan="6" class="empty-cell">لا توجد امتحانات</td></tr>';
-        return;
-    }
-    
-    table.innerHTML = '';
-    const classMap = { '1': 'الصف الأول الثانوي', '2': 'الصف الثاني الثانوي', '3': 'الصف الثالث الثانوي' };
-    
-    exams.forEach(e => {
-        const row = table.insertRow();
-        
-        const imagesList = e.images || (e.data ? [e.data] : []);
-        let imagesHtml = '';
-        if (imagesList.length > 0) {
-            imagesHtml = '<div class="images-flex">';
-            imagesList.forEach(img => {
-                imagesHtml += `<img src="${img}">`;
-            });
-            imagesHtml += '</div>';
-        }
-        
-        row.innerHTML = `
-            <td class="table-center">${imagesHtml}</td>
-            <td>${e.name}</td>
-            <td>${e.description || '-'}</td>
-            <td>${classMap[e.class]}</td>
-            <td>${e.date}</td>
-            <td>
-                <button class="btn btn-danger btn-small" onclick="deleteExam('${e.id}')">🗑️ حذف</button>
-            </td>
-        `;
-    });
-};
-
 // Initialize page on DOMContentLoaded
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize dark mode
-    window.initDarkMode && window.initDarkMode();
-
     // Load lessons into table
     const table = document.getElementById('lessons-table');
     if (table) {
@@ -1418,5 +1558,1340 @@ document.addEventListener('DOMContentLoaded', function() {
         window.loadLessonsFromCloud && window.loadLessonsFromCloud();
         if (typeof window.loadMeetingsFromCloud === 'function') window.loadMeetingsFromCloud();
         if (typeof window.loadCentersFromCloud === 'function') window.loadCentersFromCloud();
+        if (typeof window.loadTeacherVideoLessons === 'function') window.loadTeacherVideoLessons();
     }, 1000);
+});
+
+// ===== Display functions for exams and lessons =====
+
+// Student Pages: Exams and Lessons
+document.addEventListener('DOMContentLoaded', function() {
+    const path = location.pathname;
+    const isExamPage = path.includes('e1') || path.includes('e2') || path.includes('e3');
+    const isClassPage = path.includes('class-1') || path.includes('class-2') || path.includes('class-3');
+    
+    console.log('Student pages check - isExamPage:', isExamPage, 'isClassPage:', isClassPage);
+    
+    if (isExamPage) {
+        // Load exams for student pages
+        const examsQ = query(collection(db, 'exams'));
+        onSnapshot(examsQ, (snapshot) => {
+            const exams = [];
+            snapshot.forEach((doc) => exams.push(doc.data()));
+            console.log('✅ Exams loaded from Firebase:', exams);
+            localStorage.setItem('exams', JSON.stringify(exams));
+            window.renderExams && window.renderExams();
+        });
+    }
+    
+    if (isClassPage) {
+        // Load lessons for student pages
+        const lessonsQ = query(collection(db, 'lessons'));
+        onSnapshot(lessonsQ, (snapshot) => {
+            const lessons = [];
+            snapshot.forEach((doc) => lessons.push(doc.data()));
+            console.log('✅ Lessons loaded from Firebase:', lessons);
+            localStorage.setItem('lessons', JSON.stringify(lessons));
+            
+            let classNum = '1';
+            if (path.includes('class-2')) classNum = '2';
+            if (path.includes('class-3')) classNum = '3';
+            
+            window.loadLessons && window.loadLessons(classNum);
+            
+            // Load videos for this class
+            window.loadClassVideos && window.loadClassVideos(classNum);
+        });
+    }
+});
+
+// ===== Display functions for exams and lessons =====
+
+// Render exams on exam pages (e1, e2, e3)
+window.renderExams = function() {
+    const container = document.getElementById('exams-container');
+    if (!container) {
+        console.error('لم يتم العثور على exams-container');
+        return;
+    }
+    
+    const examsData = localStorage.getItem('exams');
+    console.log('localStorage exams:', examsData);
+    
+    const exams = examsData ? JSON.parse(examsData) : [];
+    console.log('Parsed exams:', exams);
+    
+    // Determine which class this exam page is for
+    const path = location.pathname;
+    let classNum = '1';
+    if (path.includes('e2')) classNum = '2';
+    if (path.includes('e3')) classNum = '3';
+    
+    console.log('Current page class:', classNum);
+    
+    // Filter exams for this class
+    const classExams = exams.filter(e => {
+        console.log('Filtering exam:', e, 'class:', e.class, 'target:', parseInt(classNum));
+        return e.class === parseInt(classNum);
+    });
+    
+    console.log('Filtered exams for class ' + classNum + ':', classExams);
+    
+    if (classExams.length === 0) {
+        container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 30px;"><p class="empty-state">لا توجد امتحانات متاحة حالياً</p></div>';
+        return;
+    }
+    
+    // Initialize gallery storage
+    if (!window.examGalleries) {
+        window.examGalleries = {};
+    }
+    
+    container.innerHTML = '';
+    classExams.forEach((exam, examIndex) => {
+        const examCard = document.createElement('div');
+        examCard.className = 'exam-card';
+        
+        const imagesHtml = (exam.images || []).length > 0
+            ? `<div class="exam-card-images">
+                ${(exam.images || []).map((img, imgIndex) => `
+                    <img src="${img}" alt="${exam.name}" onerror="this.style.display='none'" style="width: 100%; height: auto; display: block;">
+                `).join('')}
+              </div>`
+            : '';
+        
+        // Create unique gallery ID for this exam
+        const galleryId = 'exam_' + Date.now() + '_' + examIndex;
+        window.examGalleries[galleryId] = exam.images || [];
+        
+        // Create buttons HTML for download and view
+        const buttonsHtml = (exam.images || []).length > 0
+            ? `<div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
+                <button onclick="downloadAllImages('${galleryId}', '${(exam.name || 'exam').replace(/'/g, "\\'")}')" class="btn" style="padding: 8px 12px; font-size: 13px; background: #0b5ed7; color: white; border: none; border-radius: 4px; cursor: pointer; flex: 1; min-width: 100px;">⬇️ تنزيل الكل</button>
+                ${(exam.images || []).length > 0 ? `<button onclick="displayImageGallery('${galleryId}', 0)" class="btn" style="padding: 8px 12px; font-size: 13px; background: #0ea5a4; color: white; border: none; border-radius: 4px; cursor: pointer; flex: 1; min-width: 100px;">👁️ عرض الصور</button>` : ''}
+              </div>`
+            : '';
+        
+        examCard.innerHTML = `
+            ${imagesHtml}
+            <div class="exam-card-info">
+                <h3 class="exam-card-title">${exam.name || 'بدون اسم'}</h3>
+                <p class="exam-card-desc">${exam.description || 'بدون وصف'}</p>
+                <p class="exam-card-date">📅 ${exam.date || 'بدون تاريخ'}</p>
+                ${buttonsHtml}
+            </div>
+        `;
+        container.appendChild(examCard);
+    });
+    
+    console.log('تم عرض', classExams.length, 'امتحان');
+};
+
+// Load lessons for specific class
+window.loadLessons = function(classNum) {
+    const container = document.getElementById('lessons-container');
+    if (!container) {
+        console.error('لم يتم العثور على lessons-container');
+        return;
+    }
+    
+    console.log('Loading lessons for class:', classNum);
+    
+    const lessonsData = localStorage.getItem('lessons');
+    console.log('localStorage lessons:', lessonsData);
+    
+    const lessons = lessonsData ? JSON.parse(lessonsData) : [];
+    console.log('Parsed lessons:', lessons);
+    
+    // Filter lessons for this class
+    const classLessons = lessons.filter(l => {
+        console.log('Filtering lesson:', l, 'class:', l.class, 'target:', classNum);
+        return l.class === classNum;
+    });
+    
+    console.log('Filtered lessons for class ' + classNum + ':', classLessons);
+    
+    if (classLessons.length === 0) {
+        container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 30px;"><p class="empty-state">لا توجد دروس متاحة حالياً</p></div>';
+        return;
+    }
+    
+    container.innerHTML = '';
+    classLessons.forEach((lesson, lessonIndex) => {
+        const lessonCard = document.createElement('div');
+        lessonCard.className = 'exam-card';
+        lessonCard.style.maxWidth = '300px';
+        lessonCard.style.cursor = lesson.link ? 'pointer' : 'default';
+        
+        let videoHtml = '';
+        let videoId = null;
+        
+        if (lesson.link) {
+            // Extract YouTube video ID if it's a YouTube link
+            const youtubeMatch = lesson.link.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
+            if (youtubeMatch) {
+                videoId = youtubeMatch[1];
+            }
+
+            if (videoId) {
+                // Show YouTube thumbnail as the card image
+                const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+                videoHtml = `
+                    <div style="position: relative; width: 100%; overflow: hidden; border-radius: 8px; margin-bottom: 15px; background: #000;">
+                        <img src="${thumbnailUrl}" alt="${lesson.title}" style="width: 100%; height: auto; display: block; object-fit: cover;">
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 50px; opacity: 0.8;">▶️</div>
+                    </div>
+                `;
+            }
+        }
+        
+        lessonCard.innerHTML = `
+            ${videoHtml}
+            <div class="exam-card-info">
+                <h3 class="exam-card-title">${lesson.title || 'بدون عنوان'}</h3>
+                <p class="exam-card-desc">${lesson.description || 'بدون وصف'}</p>
+            </div>
+        `;
+        
+        // Add click event to open video in modal
+        if (videoId) {
+            lessonCard.onclick = () => window.openVideoModal(videoId, lesson.title || 'فيديو');
+            lessonCard.style.transition = 'transform 0.2s, box-shadow 0.2s';
+            lessonCard.onmouseover = () => {
+                lessonCard.style.transform = 'scale(1.05)';
+                lessonCard.style.boxShadow = '0 6px 20px rgba(0,0,0,0.15)';
+            };
+            lessonCard.onmouseout = () => {
+                lessonCard.style.transform = 'scale(1)';
+                lessonCard.style.boxShadow = '';
+            };
+        } else if (lesson.link) {
+            lessonCard.onclick = () => window.open(lesson.link, '_blank');
+        }
+        
+        container.appendChild(lessonCard);
+    });
+    
+    console.log('تم عرض', classLessons.length, 'درس');
+};
+
+// ===== Image Download and Display Functions =====
+
+window.downloadImage = function(imageUrl, fileName) {
+    try {
+        // Create a temporary link element
+        const link = document.createElement('a');
+        link.href = imageUrl;
+        link.download = fileName + '.png';
+        
+        // Trigger download
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        console.log('Image downloaded:', fileName);
+    } catch (error) {
+        console.error('Download error:', error);
+        alert('❌ حدث خطأ في تنزيل الصورة');
+    }
+};
+
+window.displayImageFullscreen = function(imageUrl) {
+    try {
+        // Create modal for fullscreen display
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            direction: rtl;
+        `;
+        
+        const imgContainer = document.createElement('div');
+        imgContainer.style.cssText = `
+            position: relative;
+            max-width: 90vw;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        `;
+        
+        const img = document.createElement('img');
+        img.src = imageUrl;
+        img.style.cssText = `
+            max-width: 100%;
+            max-height: 80vh;
+            border-radius: 8px;
+        `;
+        
+        // Close button
+        const closeBtn = document.createElement('button');
+        closeBtn.innerText = '❌ إغلاق';
+        closeBtn.style.cssText = `
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        `;
+        closeBtn.onclick = function() {
+            document.body.removeChild(modal);
+        };
+        
+        // Download button
+        const downloadBtn = document.createElement('button');
+        downloadBtn.innerText = '⬇️ تنزيل';
+        downloadBtn.style.cssText = `
+            margin-top: 10px;
+            margin-right: 10px;
+            padding: 10px 20px;
+            background: #0b5ed7;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        `;
+        downloadBtn.onclick = function() {
+            window.downloadImage(imageUrl, 'exam_image');
+        };
+        
+        imgContainer.appendChild(img);
+        imgContainer.appendChild(downloadBtn);
+        imgContainer.appendChild(closeBtn);
+        
+        modal.appendChild(imgContainer);
+        document.body.appendChild(modal);
+        
+        // Close on Escape key
+        const escapeHandler = function(e) {
+            if (e.key === 'Escape') {
+                if (document.body.contains(modal)) {
+                    document.body.removeChild(modal);
+                }
+                document.removeEventListener('keydown', escapeHandler);
+            }
+        };
+        document.addEventListener('keydown', escapeHandler);
+        
+        console.log('Image displayed in fullscreen');
+    } catch (error) {
+        console.error('Display error:', error);
+        alert('❌ حدث خطأ في عرض الصورة');
+    }
+};
+
+// Download all images at once
+window.downloadAllImages = function(galleryId, examName) {
+    try {
+        const images = window.examGalleries && window.examGalleries[galleryId];
+        if (!images || images.length === 0) {
+            alert('❌ لا توجد صور لتنزيلها');
+            return;
+        }
+        
+        images.forEach((img, index) => {
+            setTimeout(() => {
+                const link = document.createElement('a');
+                link.href = img;
+                link.download = examName + '_' + (index + 1) + '.png';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                console.log('Downloaded image:', index + 1);
+            }, index * 500); // Delay each download by 500ms to avoid browser blocking
+        });
+        
+        console.log('Started downloading', images.length, 'images');
+    } catch (error) {
+        console.error('Download all error:', error);
+        alert('❌ حدث خطأ في تنزيل الصور');
+    }
+};
+
+// Image Gallery with arrow navigation
+window.displayImageGallery = function(galleryId, startIndex) {
+    try {
+        // Get images from gallery storage
+        const images = window.examGalleries && window.examGalleries[galleryId] 
+            ? window.examGalleries[galleryId] 
+            : [];
+        
+        if (!images || images.length === 0) {
+            alert('❌ لا توجد صور لعرضها');
+            return;
+        }
+        
+        let currentIndex = startIndex || 0;
+        
+        // Create modal
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            direction: rtl;
+        `;
+        
+        const galleryContainer = document.createElement('div');
+        galleryContainer.style.cssText = `
+            position: relative;
+            max-width: 90vw;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        `;
+        
+        // Main image wrapper
+        const imgWrapper = document.createElement('div');
+        imgWrapper.style.cssText = `
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+        `;
+        
+        // Main image
+        const mainImg = document.createElement('img');
+        mainImg.style.cssText = `
+            max-width: 100%;
+            max-height: 70vh;
+            border-radius: 8px;
+            object-fit: contain;
+        `;
+        
+        // Close button - top right corner on image
+        const closeBtn = document.createElement('button');
+        closeBtn.innerText = '✕';
+        closeBtn.style.cssText = `
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 40px;
+            height: 40px;
+            background: rgba(220, 53, 69, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0;
+            line-height: 1;
+        `;
+        
+        // Image counter
+        const counter = document.createElement('div');
+        counter.style.cssText = `
+            margin-top: 15px;
+            font-size: 18px;
+            color: white;
+            text-align: center;
+        `;
+        
+        // Navigation arrows - fixed at screen edges
+        const prevBtn = document.createElement('button');
+        prevBtn.innerText = '◀';
+        prevBtn.style.cssText = `
+            position: fixed;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 64px;
+            height: 64px;
+            padding: 0;
+            font-size: 26px;
+            background: rgba(11, 94, 215, 0.95);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10001;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+        `;
+
+        const nextBtn = document.createElement('button');
+        nextBtn.innerText = '▶';
+        nextBtn.style.cssText = `
+            position: fixed;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 64px;
+            height: 64px;
+            padding: 0;
+            font-size: 26px;
+            background: rgba(14, 165, 164, 0.95);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10001;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+        `;
+        
+        // Update function
+        const updateImage = function() {
+            mainImg.src = images[currentIndex];
+            counter.innerText = `الصورة ${currentIndex + 1} من ${images.length}`;
+            
+            // Update button states
+            prevBtn.style.opacity = currentIndex === 0 ? '0.5' : '1';
+            prevBtn.style.pointerEvents = currentIndex === 0 ? 'none' : 'auto';
+            
+            nextBtn.style.opacity = currentIndex === images.length - 1 ? '0.5' : '1';
+            nextBtn.style.pointerEvents = currentIndex === images.length - 1 ? 'none' : 'auto';
+        };
+        
+        // Event listeners for navigation
+        prevBtn.onclick = function() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateImage();
+            }
+        };
+
+        nextBtn.onclick = function() {
+            if (currentIndex < images.length - 1) {
+                currentIndex++;
+                updateImage();
+            }
+        };
+        
+        // Close button
+        closeBtn.onclick = function() {
+            if (document.body.contains(modal)) {
+                document.body.removeChild(modal);
+                document.removeEventListener('keydown', keyHandler);
+            }
+        };
+        
+        // Keyboard navigation (ArrowLeft = previous, ArrowRight = next)
+        const keyHandler = function(e) {
+            if (e.key === 'ArrowLeft') {
+                if (currentIndex > 0) {
+                    currentIndex--;
+                    updateImage();
+                }
+            } else if (e.key === 'ArrowRight') {
+                if (currentIndex < images.length - 1) {
+                    currentIndex++;
+                    updateImage();
+                }
+            } else if (e.key === 'Escape') {
+                if (document.body.contains(modal)) {
+                    document.body.removeChild(modal);
+                    document.removeEventListener('keydown', keyHandler);
+                }
+            }
+        };
+        
+        // Close button click handler
+        closeBtn.onclick = function() {
+            if (document.body.contains(modal)) {
+                document.body.removeChild(modal);
+                document.removeEventListener('keydown', keyHandler);
+            }
+        };
+        
+        // Append elements - arrows are fixed at screen edges, image fills remaining area
+        imgWrapper.appendChild(mainImg);
+        imgWrapper.appendChild(closeBtn);
+        imgWrapper.appendChild(counter);
+
+        galleryContainer.appendChild(imgWrapper);
+        modal.appendChild(galleryContainer);
+        // add arrows to modal so they sit at screen edges
+        modal.appendChild(prevBtn);
+        modal.appendChild(nextBtn);
+        document.body.appendChild(modal);
+        
+        // Initialize
+        updateImage();
+        document.addEventListener('keydown', keyHandler);
+        
+        console.log('Image gallery displayed with', images.length, 'images');
+    } catch (error) {
+        console.error('Gallery display error:', error);
+        alert('❌ حدث خطأ في عرض معرض الصور');
+    }
+};
+
+// ============================================
+// Video Lesson Management Functions
+// إدارة دروس الفيديو
+// ============================================
+
+// Helper: Extract YouTube Video ID from URL
+function extractYouTubeVideoId(url) {
+    const regex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\s]{11})/;
+    const match = url.match(regex);
+    return match ? match[1] : null;
+}
+
+// Helper: Get current user
+async function getCurrentUser() {
+    return new Promise((resolve) => {
+        auth.onAuthStateChanged((user) => {
+            resolve(user);
+        });
+    });
+}
+
+// ============================================
+// Publish Video Lesson to Firebase
+// نشر درس فيديو إلى Firebase
+// ============================================
+window.publishVideoLesson = async function() {
+    const titleInput = document.getElementById('video-title');
+    const classInput = document.getElementById('video-class');
+    const descInput = document.getElementById('video-description');
+    const urlInput = document.getElementById('youtube-link');
+    const publishBtn = document.querySelector('.btn-publish') || document.querySelector('#video-form button[type="submit"]');
+    const publishBtnText = document.getElementById('publish-btn-text');
+    const videoMessage = document.getElementById('video-message');
+
+    try {
+        // Validate inputs
+        if (!titleInput.value.trim() || !descInput.value.trim() || !urlInput.value.trim() || (classInput && !classInput.value)) {
+            if (videoMessage) videoMessage.innerText = '❌ الرجاء ملء جميع الحقول';
+            else alert('❌ الرجاء ملء جميع الحقول');
+            return;
+        }
+
+        // Extract video ID
+        const videoId = extractYouTubeVideoId(urlInput.value);
+        if (!videoId) {
+            if (videoMessage) videoMessage.innerText = '❌ رابط اليوتيوب غير صحيح';
+            else alert('❌ رابط اليوتيوب غير صحيح');
+            return;
+        }
+
+        // Get user (optional - allow guest publishing)
+        let user = auth.currentUser || null;
+        if (!user) {
+            try {
+                user = await getCurrentUser();
+            } catch (e) {
+                user = null;
+            }
+        }
+
+        // Allow publishing even without user logged in (guest user)
+
+        // Show loading state
+        if (publishBtn) publishBtn.disabled = true;
+        if (publishBtnText) publishBtnText.textContent = 'جاري النشر...';
+        if (videoMessage) videoMessage.innerText = 'جاري النشر...';
+
+        // Check if we're editing or creating
+        const isEditing = window.editingVideoId ? true : false;
+        const docId = isEditing ? window.editingVideoId : Date.now().toString();
+
+        // Prepare video data
+        const videoData = {
+            id: docId,
+            title: titleInput.value.trim(),
+            description: descInput.value.trim(),
+            youtubeId: videoId,
+            youtubeUrl: urlInput.value,
+            teacherId: user ? user.uid : 'guest',
+            createdAt: new Date(),
+            timestamp: Date.now()
+        };
+
+        // Add classLevel if available
+        if (classInput && classInput.value) {
+            videoData.classLevel = classInput.value;
+        }
+
+        // Save to Firebase
+        await setDoc(doc(db, 'videoLessons', docId), videoData);
+
+        if (videoMessage) videoMessage.innerText = isEditing ? '✅ تم تحديث الدرس بنجاح!' : '✅ تم نشر الدرس بنجاح!';
+        else alert(isEditing ? '✅ تم تحديث الدرس بنجاح!' : '✅ تم نشر الدرس بنجاح!');
+
+        // Reset form
+        document.getElementById('video-form').reset();
+        window.editingVideoId = null;
+        
+        if (publishBtn) publishBtn.disabled = false;
+        if (publishBtnText) publishBtnText.textContent = '🚀 نشر درس الفيديو';
+
+        // Reload videos in all views
+        window.loadVideoLessons && window.loadVideoLessons();
+        window.loadTeacherVideos && window.loadTeacherVideos();
+        window.loadVideosManagementTable && window.loadVideosManagementTable();
+        
+        // Refresh class videos
+        const classNum = classInput && classInput.value ? classInput.value : null;
+        if (classNum && window.loadClassVideos) window.loadClassVideos(classNum);
+
+    } catch (error) {
+        console.error('Error publishing video:', error);
+        const errorMsg = '❌ حدث خطأ في النشر: ' + error.message;
+        if (videoMessage) videoMessage.innerText = errorMsg;
+        else alert(errorMsg);
+        if (publishBtn) publishBtn.disabled = false;
+        if (publishBtnText) publishBtnText.textContent = '🚀 نشر درس الفيديو';
+    }
+};
+
+// ============================================
+// Load Teacher's Videos (for gallery view)
+// جلب فيديوهات المعلم
+// ============================================
+window.loadTeacherVideos = async function() {
+    try {
+        console.log('📹 loadTeacherVideos called');
+        const videosGrid = document.getElementById('teacher-videos-grid');
+        
+        if (!videosGrid) {
+            console.warn('❌ teacher-videos-grid not found');
+            return;
+        }
+        
+        const user = await getCurrentUser();
+        console.log('👤 Current user:', user?.uid || 'null');
+        if (!user) {
+            console.log('❌ No user logged in');
+            return;
+        }
+        
+        const q = query(
+            collection(db, 'videoLessons'),
+            where('teacherId', '==', user.uid)
+        );
+        
+        onSnapshot(q, (snapshot) => {
+            const videos = [];
+            snapshot.forEach((doc) => {
+                videos.push({ id: doc.id, ...doc.data() });
+            });
+
+            videos.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+            console.log('📊 Teacher videos:', videos.length);
+
+            if (videos.length === 0) {
+                videosGrid.innerHTML = '';
+            } else {
+                videosGrid.innerHTML = videos.map(video => `
+                    <div class="video-card">
+                        <div class="video-thumbnail" style="background-image:url('https://img.youtube.com/vi/${video.youtubeId}/hqdefault.jpg')"></div>
+                        <div class="video-info">
+                            <h3 class="video-title">${video.title}</h3>
+                            <p class="video-description">${video.description}</p>
+                            <div class="video-actions">
+                                <button class="btn-view" onclick="window.openProtectedPlayer('${video.youtubeId}', '${video.title.replace(/'/g, "\\'")}', '${(video.description||'').replace(/'/g, "\\'")}','')">
+                                    ▶ مشاهدة
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            console.log('✅ Teacher videos rendered');
+        });
+
+    } catch (error) {
+        console.error('Error loading teacher videos:', error);
+    }
+};
+
+// ============================================
+// Delete Video Lesson
+// حذف درس فيديو
+// ============================================
+window.deleteVideoLesson = async function(videoId) {
+    if (!confirm('هل أنت متأكد من حذف هذا الدرس؟')) {
+        return;
+    }
+
+    try {
+        await deleteDoc(doc(db, 'videoLessons', videoId));
+        alert('✅ تم حذف الدرس بنجاح');
+        
+        // Refresh all views
+        window.loadVideoLessons && window.loadVideoLessons();
+        window.loadTeacherVideos && window.loadTeacherVideos();
+        window.loadVideosManagementTable && window.loadVideosManagementTable();
+        
+        // Refresh all class videos
+        window.loadClassVideos && window.loadClassVideos(1);
+        window.loadClassVideos && window.loadClassVideos(2);
+        window.loadClassVideos && window.loadClassVideos(3);
+    } catch (error) {
+        console.error('Error deleting video:', error);
+        alert('❌ حدث خطأ في حذف الدرس');
+    }
+};
+
+// ============================================
+// Load Video Lessons from Firebase
+// جلب دروس الفيديو من Firebase
+// ============================================
+window.loadVideoLessons = async function() {
+    try {
+        const videosGrid = document.getElementById('videos-grid');
+        const emptyState = document.getElementById('empty-state');
+        
+        if (!videosGrid) return; // Page doesn't have videos-grid
+        
+        videosGrid.innerHTML = '';
+        
+        const q = query(collection(db, 'videoLessons'));
+        
+        onSnapshot(q, (snapshot) => {
+            const videos = [];
+            snapshot.forEach((doc) => {
+                videos.push({ id: doc.id, ...doc.data() });
+            });
+
+            // Sort by most recent first
+            videos.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+            if (videos.length === 0) {
+                videosGrid.innerHTML = '';
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+                videosGrid.innerHTML = videos.map(video => `
+                    <div class="video-card">
+                        <div class="video-thumbnail"></div>
+                        <div class="video-info">
+                            <h3 class="video-title">${video.title}</h3>
+                            <p class="video-description">${video.description}</p>
+                            <div class="video-actions">
+                                <button class="btn-view" onclick="window.openProtectedPlayer('${video.youtubeId}', '${video.title.replace(/'/g, "\\'")}', '${(video.description||'').replace(/'/g, "\\'")}','')">
+                                    ▶ مشاهدة
+                                </button>
+                                ${isTeacherVideo(video.teacherId) ? `
+                                    <button class="btn-delete" onclick="window.deleteVideoLesson('${video.id}')">
+                                        🗑 حذف
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            console.log('✅ Videos loaded:', videos.length);
+        });
+
+    } catch (error) {
+        console.error('Error loading videos:', error);
+    }
+};
+
+// ============================================
+// Load Teacher's Video Lessons for Teacher Dashboard
+// جلب دروس الفيديو الخاصة بالمعلم لأغراض الإدارة
+// ============================================
+window.loadTeacherVideoLessons = async function() {
+    try {
+        const user = await getCurrentUser();
+        if (!user) return; // Not logged in
+
+        const teacherVideosGrid = document.getElementById('teacher-videos-grid');
+        const emptyTeacherVideos = document.getElementById('teacher-empty-videos');
+        
+        if (!teacherVideosGrid) return; // Not on teacher page
+
+        const q = query(collection(db, 'videoLessons'), where('teacherId', '==', user.uid));
+        
+        onSnapshot(q, (snapshot) => {
+            const videos = [];
+            snapshot.forEach((doc) => {
+                videos.push({ id: doc.id, ...doc.data() });
+            });
+
+            // Sort by most recent first
+            videos.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+            if (videos.length === 0) {
+                teacherVideosGrid.innerHTML = '';
+                emptyTeacherVideos.style.display = 'block';
+            } else {
+                emptyTeacherVideos.style.display = 'none';
+                teacherVideosGrid.innerHTML = videos.map(video => `
+                    <div class="video-card">
+                        <div class="video-thumbnail" style="background-image:url('https://img.youtube.com/vi/${video.youtubeId}/hqdefault.jpg')"></div>
+                        <div class="video-info">
+                            <h3 class="video-title">${video.title}</h3>
+                            <p class="video-description">${video.description}</p>
+                            <div class="video-actions">
+                                <button class="btn-view" onclick="window.playVideo('${video.id}', '${video.title.replace(/'/g, "\\'")}', '${video.youtubeId}')">
+                                    ▶ معاينة
+                                </button>
+                                <button class="btn-delete" onclick="window.deleteVideoLesson('${video.id}')">
+                                    🗑 حذف
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            console.log('✅ Teacher videos loaded:', videos.length);
+        });
+
+    } catch (error) {
+        console.error('Error loading teacher videos:', error);
+    }
+};
+
+// ============================================
+// ============================================
+// Play Video in Modal with Protection
+// تشغيل الفيديو مع الحماية
+// ============================================
+window.playVideo = function(videoId, title, youtubeId) {
+    try {
+        // Create fullscreen video modal
+        let modal = document.getElementById('fullscreen-video-modal');
+        
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'fullscreen-video-modal';
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: #000;
+                z-index: 99999;
+                display: none;
+                align-items: center;
+                justify-content: center;
+                direction: rtl;
+            `;
+            
+            modal.innerHTML = `
+                <div style="
+                    position: relative;
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    flex-direction: column;
+                ">
+                    <!-- Close Button -->
+                    <button id="close-video-btn" style="
+                        position: absolute;
+                        top: 20px;
+                        right: 20px;
+                        width: 50px;
+                        height: 50px;
+                        background: rgba(220, 53, 69, 0.9);
+                        color: white;
+                        border: none;
+                        border-radius: 50%;
+                        font-size: 28px;
+                        cursor: pointer;
+                        z-index: 100000;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        transition: all 0.3s ease;
+                    " onmouseover="this.style.background='rgba(220, 53, 69, 1)'" onmouseout="this.style.background='rgba(220, 53, 69, 0.9)'">
+                        ✕
+                    </button>
+                    
+                    <!-- Video Container -->
+                    <div id="fullscreen-video-container" style="
+                        flex: 1;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    "></div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Close button event listener
+            document.getElementById('close-video-btn').addEventListener('click', window.closeFullscreenVideo);
+        }
+        
+        // Set video content
+        const videoContainer = document.getElementById('fullscreen-video-container');
+        
+        // Create iframe WITHOUT recommendation options and modestbranding
+        const iframeHTML = `
+            <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 50001; pointer-events: auto; border-radius: 8px;" id="fullscreen-video-overlay"></div>
+            <iframe 
+                src="https://www.youtube.com/embed/${youtubeId}?rel=0&controls=1&autoplay=1&fs=1&modestbranding=0" 
+                style="
+                    width: 100%;
+                    height: 100%;
+                    border: none;
+                "
+                allow="autoplay; encrypted-media; fullscreen"
+                allowfullscreen>
+            </iframe>
+        `;
+        
+        videoContainer.innerHTML = iframeHTML;
+        
+        // Protect the overlay from right-click
+        setTimeout(() => {
+            const overlay = document.getElementById('fullscreen-video-overlay');
+            if (overlay) {
+                overlay.addEventListener('contextmenu', (e) => { e.preventDefault(); e.stopPropagation(); return false; }, true);
+                overlay.addEventListener('mousedown', (e) => { if (e.button === 2) { e.preventDefault(); e.stopPropagation(); } }, true);
+            }
+        }, 100);
+        
+        // Show modal
+        modal.style.display = 'flex';
+        
+        // Prevent scroll
+        document.body.style.overflow = 'hidden';
+        
+        console.log('Video playing fullscreen:', title);
+
+    } catch (error) {
+        console.error('Error playing video:', error);
+        alert('❌ حدث خطأ في تشغيل الفيديو');
+    }
+};
+
+// ============================================
+// Close Fullscreen Video
+// إغلاق الفيديو
+// ============================================
+window.closeFullscreenVideo = function() {
+    const modal = document.getElementById('fullscreen-video-modal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.getElementById('fullscreen-video-container').innerHTML = '';
+        document.body.style.overflow = 'auto';
+    }
+};
+
+// Close fullscreen video when clicking outside (on black background)
+document.addEventListener('click', (e) => {
+    const fullscreenModal = document.getElementById('fullscreen-video-modal');
+    if (fullscreenModal && fullscreenModal.style.display === 'flex') {
+        // Only close if clicking directly on the modal background, not on the video
+        if (e.target === fullscreenModal) {
+            window.closeFullscreenVideo();
+        }
+    }
+});
+
+// ============================================
+// Initialize Watermark Animation
+// تهيئة العلامة المائية
+// ============================================
+function initializeWatermark() {
+    const watermark = document.getElementById('floating-watermark');
+    if (!watermark) return;
+
+    // Position watermark randomly
+    const positions = [
+        { top: '20%', left: '10%' },
+        { top: '30%', left: '70%' },
+        { top: '60%', left: '15%' },
+        { top: '50%', left: '65%' },
+        { top: '75%', left: '20%' }
+    ];
+
+    const randomPos = positions[Math.floor(Math.random() * positions.length)];
+    watermark.style.top = randomPos.top;
+    watermark.style.left = randomPos.left;
+
+    // Restart animation
+    watermark.style.animation = 'none';
+    setTimeout(() => {
+        watermark.style.animation = 'float-watermark 6s infinite ease-in-out';
+    }, 10);
+}
+
+// ============================================
+// Close Video Player
+// إغلاق مشغل الفيديو
+// ============================================
+window.closeVideoPlayer = function() {
+    const modal = document.getElementById('video-player-modal');
+    if (!modal) return;
+    modal.classList.remove('active');
+    document.getElementById('video-content').innerHTML = '';
+};
+
+// ============================================
+// Check if current user is teacher of this video
+// التحقق من كون المستخدم معلم الفيديو
+// ============================================
+async function isTeacherVideo(teacherId) {
+    const user = await getCurrentUser();
+    return user && user.uid === teacherId;
+}
+
+// ============================================
+// Load Videos Management Table for Teacher Dashboard
+// تحميل جدول إدارة الفيديوهات
+// ============================================
+window.loadVideosManagementTable = async function() {
+    try {
+        console.log('📋 loadVideosManagementTable called');
+        const managementTable = document.getElementById('videos-management-table');
+        
+        if (!managementTable) {
+            console.warn('❌ videos-management-table not found');
+            return;
+        }
+        
+        const user = await getCurrentUser();
+        if (!user) {
+            console.log('❌ No user logged in');
+            return;
+        }
+        
+        const q = query(
+            collection(db, 'videoLessons'),
+            where('teacherId', '==', user.uid)
+        );
+        
+        onSnapshot(q, (snapshot) => {
+            const videos = [];
+            snapshot.forEach((doc) => {
+                videos.push({ id: doc.id, ...doc.data() });
+            });
+
+            // Sort by most recent first
+            videos.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+            console.log('📊 Videos for table:', videos.length);
+
+            managementTable.innerHTML = '';
+            
+            if (videos.length === 0) {
+                managementTable.innerHTML = '<tr><td colspan="5" class="empty-cell">لا توجد فيديوهات</td></tr>';
+            } else {
+                const classMap = {
+                    '1': 'الصف الأول الثانوي',
+                    '2': 'الصف الثاني الثانوي',
+                    '3': 'الصف الثالث الثانوي'
+                };
+                
+                videos.forEach(video => {
+                    const date = video.createdAt ? new Date(video.createdAt.toDate()).toLocaleDateString('ar-EG') : new Date(video.timestamp).toLocaleDateString('ar-EG');
+                    
+                    const row = managementTable.insertRow();
+                    row.setAttribute('data-id', video.id);
+                    row.innerHTML = `
+                        <td>${video.title}</td>
+                        <td>${classMap[video.classLevel] || 'غير محدد'}</td>
+                        <td>${video.description}</td>
+                        <td>${date}</td>
+                        <td>
+                            <button class="btn btn-warning btn-small" onclick="window.editVideoLesson('${video.id}', '${video.title.replace(/'/g, "\\'")}', '${video.classLevel}', '${video.youtubeUrl.replace(/'/g, "\\'")}', '${video.description.replace(/'/g, "\\'")}')">✏️ تعديل</button>
+                            <button class="btn btn-danger btn-small" onclick="window.deleteVideoLesson('${video.id}')">🗑️ حذف</button>
+                        </td>
+                    `;
+                });
+            }
+            
+            console.log('✅ Videos table rendered');
+        });
+
+    } catch (error) {
+        console.error('Error loading videos management table:', error);
+    }
+};
+
+// ============================================
+// Edit Video Lesson
+// تعديل درس فيديو
+// ============================================
+window.editVideoLesson = function(videoId, title, classLevel, youtubeUrl, description) {
+    console.log('✏️ Editing video:', videoId);
+    
+    document.getElementById('video-title').value = title;
+    document.getElementById('video-class').value = classLevel;
+    document.getElementById('youtube-link').value = youtubeUrl;
+    document.getElementById('video-description').value = description;
+    
+    // Store the editing ID
+    window.editingVideoId = videoId;
+    
+    // Scroll to form
+    window.scrollTo({
+        top: document.getElementById('video-title').offsetTop - 100,
+        behavior: 'smooth'
+    });
+    
+    document.getElementById('video-title').focus();
+};
+
+// ============================================
+// Load Videos for Specific Class (Student View)
+// تحميل فيديوهات صف محدد
+// ============================================
+window.loadClassVideos = async function(classNumber) {
+    try {
+        console.log('📹 loadClassVideos called for class:', classNumber);
+        const videosGrid = document.getElementById('videos-grid');
+        const emptyState = document.getElementById('empty-state');
+        
+        if (!videosGrid) {
+            console.warn('❌ videos-grid element not found');
+            return;
+        }
+        
+        videosGrid.innerHTML = '';
+        
+        const classLevelStr = classNumber.toString();
+        console.log('🔍 Searching for videos with classLevel:', classLevelStr);
+        
+        const q = query(
+            collection(db, 'videoLessons'),
+            where('classLevel', '==', classLevelStr)
+        );
+        
+        onSnapshot(q, (snapshot) => {
+            const videos = [];
+            snapshot.forEach((doc) => {
+                videos.push({ id: doc.id, ...doc.data() });
+            });
+
+            // Sort by most recent first
+            videos.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+            console.log('📊 Class videos from Firebase:', videos.length, videos);
+
+            if (videos.length === 0) {
+                videosGrid.innerHTML = '';
+                if (emptyState) {
+                    emptyState.classList.remove('hidden');
+                } else {
+                    videosGrid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #a0a0a0; padding: 40px;">لا توجد دروس فيديو متاحة حالياً</p>';
+                }
+            } else {
+                if (emptyState) {
+                    emptyState.classList.add('hidden');
+                }
+                videosGrid.innerHTML = videos.map(video => `
+                    <div class="video-card">
+                        <div class="video-thumbnail" style="background-image:url('https://img.youtube.com/vi/${video.youtubeId}/hqdefault.jpg')"></div>
+                        <div class="video-info">
+                            <h3 class="video-title">${video.title}</h3>
+                            <p class="video-description">${video.description}</p>
+                            <div class="video-actions">
+                                <button class="btn-view" onclick="window.playVideo('${video.id}', '${video.title.replace(/'/g, "\\'")}', '${video.youtubeId}')">
+                                    ▶ مشاهدة
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            console.log('✅ Class videos rendered');
+        });
+
+    } catch (error) {
+        console.error('Error loading class videos:', error);
+    }
+};
+
+// ============================================
+// Initialize Video Page
+// تهيئة صفحة الفيديو
+// ============================================
+window.initializeVideoPage = async function() {
+    try {
+        const teacherSection = document.getElementById('teacher-section');
+        if (!teacherSection) return; // Not on video page
+
+        const user = await getCurrentUser();
+        if (user) {
+            // Check if user is teacher
+            const userDoc = await getDoc(doc(db, 'users', user.uid));
+            if (userDoc.exists() && userDoc.data().role === 'teacher') {
+                teacherSection.classList.remove('hidden');
+            }
+        }
+
+        // Load videos for everyone
+        window.loadVideoLessons();
+
+    } catch (error) {
+        console.error('Error initializing video page:', error);
+    }
+};
+
+// ============================================
+// Initialize on page load
+// ============================================
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        if (document.getElementById('videos-grid')) {
+            window.initializeVideoPage();
+        }
+    });
+} else {
+    if (document.getElementById('videos-grid')) {
+        window.initializeVideoPage();
+    }
+}
+
+// Close modal on escape key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        // Close fullscreen video
+        const fullscreenModal = document.getElementById('fullscreen-video-modal');
+        if (fullscreenModal && fullscreenModal.style.display === 'flex') {
+            window.closeFullscreenVideo();
+        }
+        
+        // Close old video player modal
+        const modal = document.getElementById('video-player-modal');
+        if (modal && modal.classList.contains('active')) {
+            window.closeVideoPlayer();
+        }
+    }
+});
+
+// --- منع الكليك اليميني على صفحات الكلاس ---
+document.addEventListener('contextmenu', function(e) {
+    const currentPage = window.location.pathname;
+    // تحقق إذا كنا على صفحة من صفحات الكلاس
+    if (currentPage.includes('class-1') || currentPage.includes('class-2') || currentPage.includes('class-3')) {
+        e.preventDefault();
+        return false;
+    }
 });

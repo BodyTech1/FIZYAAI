@@ -8,7 +8,7 @@
     <meta name="author" content="مستر ياسر علي">
     <meta property="og:title" content="فزيائي | منصة تعليمية للفيزياء">
     <meta property="og:description" content="انضم إلينا في فزيائي وتعلم الفيزياء بطريقة سهلة وممتعة مع مستر ياسر علي">
-    <meta property="og:image" content="فزيائي.png">
+    <meta property="og:image" content="فزيائي (1).png">
     <meta property="og:type" content="website">
     <title>فزيائي | الامتحانات</title>
     <link rel="stylesheet" href="style.css">
@@ -16,10 +16,10 @@
 <body>
     <nav>
         <div class="navbar">
-            <a href="index.html" class="logo">فزيائي</a>
-            <div>
+            <a href="index.html" class="logo"><img src="2.png" alt="فزيائي" style="height:40px;display:inline-block;vertical-align:middle;border-radius:6px;"></a>
+            <div class="nav-items" id="nav-items">
                 <div class="dropdown">
-                    <a href="#">📚 الصفوف</a>
+                    <a href="#">الدروس</a>
                     <div class="dropdown-content">
                         <a href="class-1.html">الصف الأول الثانوي</a>
                         <a href="class-2.html">الصف الثاني الثانوي</a>
@@ -28,9 +28,22 @@
                 </div>
                 <a href="exams.html">الامتحانات</a>
                 <a href="login.html">تسجيل الدخول</a>
-                <a href="register.html">تسجيل جديد</a>
-                <a href="teacher.html" id="teacher-dashboard" class="hidden">👨‍🏫 لوحة التحكم</a>
-                <button onclick="toggleDarkMode()" id="dark-mode-btn">🌙</button>
+                <a href="register.html">إنشاء حساب</a>
+                <a href="teacher.html" id="teacher-dashboard" class="hidden">لوحة التحكم</a>
+                <button onclick="logout()" id="logout-btn" class="hidden">تسجيل خروج</button>
+            </div>
+            <div class="links">
+                <span class="burger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </span>
+                <ul>
+                    <li><a href="#survices">survices</a></li>
+                    <li><a href="#portfolio">Portfolio</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
             </div>
         </div>
     </nav>
@@ -38,26 +51,23 @@
     <div class="container-large">
         <h1>📝 الامتحانات</h1>
         <p class="description-text">رفع ومشاركة صور الامتحانات لكل صف. يستطيع المدرس فقط رفع الامتحانات.</p>
-<a href="e1.html">
         <div class="cards-grid">
-            <div class="card">
-                <h3>الصف الأول الثانوي</h3>
-                
-            </div>
-</a>
-<a href="e2.html">
-            <div class="card">
-                <h3>الصف الثاني الثانوي</h3>
-               
-            </div>
-</a>
-<a href="e3.html">
-            <div class="card">
-                <h3>الصف الثالث الثانوي</h3>
-                
-            </div>
+            <a href="e1.html" class="card-link">
+                <div class="card">
+                    <h3>الصف الأول الثانوي</h3>
+                </div>
+            </a>
+            <a href="e2.html" class="card-link">
+                <div class="card">
+                    <h3>الصف الثاني الثانوي</h3>
+                </div>
+            </a>
+            <a href="e3.html" class="card-link">
+                <div class="card">
+                    <h3>الصف الثالث الثانوي</h3>
+                </div>
+            </a>
         </div>
-</a>
     </div>
 
     <footer>
@@ -65,109 +75,5 @@
     </footer>
 
     <script type="module" src="script.js"></script>
-</body>
-</html>
-            const isDark = localStorage.getItem('darkMode') === 'true';
-            const btn = document.getElementById('dark-mode-btn');
-            if (isDark) {
-                document.body.classList.add('dark-mode');
-                if (btn) btn.textContent = '☀️';
-            } else {
-                document.body.classList.remove('dark-mode');
-                if (btn) btn.textContent = '🌙';
-            }
-        }
-
-        function toggleDarkMode() {
-            const isDark = localStorage.getItem('darkMode') === 'true';
-            const newState = !isDark;
-            localStorage.setItem('darkMode', newState);
-            initDarkMode();
-        }
-
-
-        function checkTeacherLogin() {
-            const isTeacher = localStorage.getItem('isTeacher') === 'true';
-            const dashboardBtn = document.getElementById('teacher-dashboard');
-            if (isTeacher) {
-                if (dashboardBtn) dashboardBtn.style.display = 'inline-block';
-            }
-
-            // hide upload inputs for non-teachers
-            ['upload-1-area','upload-2-area','upload-3-area'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.style.display = isTeacher ? 'block' : 'none';
-            });
-        }
-
-        // Exams storage helpers
-        function loadExams() {
-            return JSON.parse(localStorage.getItem('exams') || '[]');
-        }
-
-        function saveExams(arr) {
-            localStorage.setItem('exams', JSON.stringify(arr));
-        }
-
-        function renderClassList(classNum) {
-            const listEl = document.getElementById('list-' + classNum);
-            const exams = loadExams().filter(e => e.class == classNum);
-            listEl.innerHTML = '';
-            exams.forEach(e => {
-                const wrapper = document.createElement('div');
-                wrapper.className = 'exam-list-wrapper';
-
-                const img = document.createElement('img');
-                img.src = e.data;
-                img.className = 'exam-list-img';
-
-                const meta = document.createElement('div');
-                meta.className = 'exam-list-meta';
-                meta.innerHTML = `<div class="exam-list-name">${e.name || 'امتحان'}</div><div class="exam-list-date">${e.date}</div>`;
-
-                const del = document.createElement('button');
-                del.className = 'btn btn-danger btn-small';
-                del.textContent = '🗑️ حذف';
-                del.onclick = () => {
-                    if (!confirm('حذف هذا الامتحان؟')) return;
-                    let all = loadExams();
-                    all = all.filter(x => x.id !== e.id);
-                    saveExams(all);
-                    renderClassList(classNum);
-                };
-
-                wrapper.appendChild(img);
-                wrapper.appendChild(meta);
-                wrapper.appendChild(del);
-                listEl.appendChild(wrapper);
-            });
-        }
-
-        function handleUpload(classNum) {
-            const input = document.getElementById('upload-' + classNum);
-            if (!input || !input.files || !input.files[0]) return alert('اختر صورة من جهازك');
-            const file = input.files[0];
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const dataUrl = e.target.result;
-                const exams = loadExams();
-                const obj = { id: Date.now().toString(), class: classNum, name: file.name, data: dataUrl, date: new Date().toISOString().split('T')[0] };
-                exams.unshift(obj);
-                saveExams(exams);
-                input.value = '';
-                renderClassList(classNum);
-                alert('✅ تم رفع الامتحان');
-            };
-            reader.readAsDataURL(file);
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            initDarkMode();
-            checkTeacherLogin();
-            renderClassList(1);
-            renderClassList(2);
-            renderClassList(3);
-        });
-    </script>
 </body>
 </html>

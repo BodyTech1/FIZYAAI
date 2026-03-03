@@ -4,15 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>الصف الأول الثانوي - الامتحانات</title>
+    <meta property="og:title" content="الصف الأول الثانوي - الامتحانات">
+    <meta property="og:description" content="اطلع على جميع امتحانات الصف الأول الثانوي في منصة فزيائي">
+    <meta property="og:image" content="فزيائي (1).png">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-     <nav>
+    <nav>
         <div class="navbar">
-            <a href="index.html" class="logo">فزيائي</a>
-            <div>
+            <a href="index.html" class="logo"><img src="2.png" alt="فزيائي" style="height:40px;display:inline-block;vertical-align:middle;border-radius:6px;"></a>
+            <div class="nav-items" id="nav-items">
                 <div class="dropdown">
-                    <a href="#">📚 الصفوف</a>
+                    <a href="#">الدروس</a>
                     <div class="dropdown-content">
                         <a href="class-1.html">الصف الأول الثانوي</a>
                         <a href="class-2.html">الصف الثاني الثانوي</a>
@@ -21,9 +24,22 @@
                 </div>
                 <a href="exams.html">الامتحانات</a>
                 <a href="login.html">تسجيل الدخول</a>
-                <a href="register.html">تسجيل جديد</a>
-                <a href="teacher.html" id="teacher-dashboard" class="hidden">👨‍🏫 لوحة التحكم</a>
-                <button onclick="toggleDarkMode()" id="dark-mode-btn">🌙</button>
+                <a href="register.html">إنشاء حساب</a>
+                <a href="teacher.html" id="teacher-dashboard" class="hidden">لوحة التحكم</a>
+                <button onclick="logout()" id="logout-btn" class="hidden">تسجيل خروج</button>
+            </div>
+            <div class="links">
+                <span class="burger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </span>
+                <ul>
+                    <li><a href="#survices">survices</a></li>
+                    <li><a href="#portfolio">Portfolio</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
             </div>
         </div>
     </nav>
@@ -42,200 +58,4 @@
     <script type="module" src="script.js"></script>
 </body>
 </html>
-        function initDarkMode(){
-            const isDark = localStorage.getItem('darkMode')==='true';
-            const btn=document.getElementById('dark-mode-btn');
-            if(isDark){document.body.classList.add('dark-mode'); if(btn)btn.textContent='☀️'}
-            else{document.body.classList.remove('dark-mode'); if(btn)btn.textContent='🌙'}
-        }
-        function toggleDarkMode(){
-            const isDark = localStorage.getItem('darkMode')==='true';
-            localStorage.setItem('darkMode',!isDark);
-            initDarkMode();
-        }
-        function checkTeacherLogin(){
-            const isTeacher = localStorage.getItem('isTeacher')==='true';
-            const dashboardBtn = document.getElementById('teacher-dashboard');
-            if(isTeacher){
-                if(dashboardBtn) dashboardBtn.style.display='inline-block';
-            }
-        }
-        
-        function renderExams(){
-            const container = document.getElementById('exams-container');
-            const allExams = JSON.parse(localStorage.getItem('exams') || '[]');
-            const exams = allExams.filter(e => e.class == 1);
-            
-            container.innerHTML = '';
-            if(exams.length === 0){
-                container.innerHTML = '<p class="empty-state">لا توجد امتحانات متاحة</p>';
-                return;
-            }
-            
-            exams.forEach(e => {
-                const imagesList = e.images || (e.data ? [e.data] : []);
-                let imagesHtml = '';
-                if(imagesList.length > 0){
-                    imagesList.forEach(img => {
-                        imagesHtml += `<img src="${img}" alt="صورة امتحان">`;
-                    });
-                }
-                
-                const card = document.createElement('div');
-                card.className = 'exam-card';
-                card.innerHTML = `
-                    <div class="exam-card-images">${imagesHtml}</div>
-                    <div class="exam-card-info">
-                        <div class="exam-card-title">${e.name}</div>
-                        <div class="exam-card-desc">${e.description || 'بدون وصف'}</div>
-                        <div class="exam-card-date">📅 ${e.date}</div>
-                        <div class="exam-card-actions">
-                            <button class="btn btn-primary btn-small" onclick="downloadExam('${e.id}')">⬇️ تحميل</button>
-                            <button class="btn btn-secondary btn-small" onclick="viewImages('${e.id}')">👁️ عرض</button>
-                        </div>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        }
-        
-        function downloadExam(id){
-            const exams = JSON.parse(localStorage.getItem('exams') || '[]');
-            const exam = exams.find(e => e.id === id);
-            if(!exam) return;
-            
-            const imagesList = exam.images || (exam.data ? [exam.data] : []);
-            if(imagesList.length === 0) {
-                alert('لا توجد صور لتحميلها');
-                return;
-            }
-            
-            // تحميل كل الصور
-            imagesList.forEach((img, index) => {
-                const link = document.createElement('a');
-                link.href = img;
-                link.download = `${exam.name}_${index + 1}.png`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            });
-            
-            alert(`✅ تم تحميل ${imagesList.length} صورة من الامتحان "${exam.name}"`);
-        }
-        
-        let currentImageIndex = 0;
-        let currentExamImages = [];
-        
-        function viewImages(id){
-            const exams = JSON.parse(localStorage.getItem('exams') || '[]');
-            const exam = exams.find(e => e.id === id);
-            if(!exam) return;
-            
-            const imagesList = exam.images || (exam.data ? [exam.data] : []);
-            if(imagesList.length === 0) {
-                alert('لا توجد صور');
-                return;
-            }
-            
-            currentExamImages = imagesList;
-            currentImageIndex = 0;
-            
-            // إنشاء lightbox
-            let lightbox = document.getElementById('exam-lightbox');
-            if(!lightbox) {
-                lightbox = document.createElement('div');
-                lightbox.id = 'exam-lightbox';
-                lightbox.className = 'lightbox';
-                lightbox.innerHTML = `
-                    <div class="lightbox-content">
-                        <button class="lightbox-close" onclick="closeLightbox()">✕</button>
-                        <button class="lightbox-nav lightbox-prev" onclick="prevImage()">❮</button>
-                        <img id="lightbox-image" class="lightbox-image" src="" alt="صورة الامتحان">
-                        <button class="lightbox-nav lightbox-next" onclick="nextImage()">❯</button>
-                        <div class="lightbox-counter"><span id="image-counter">1/1</span></div>
-                    </div>
-                `;
-                document.body.appendChild(lightbox);
-            }
-            
-            updateLightboxImage();
-            lightbox.classList.add('active');
-        }
-        
-        function updateLightboxImage() {
-            const img = document.getElementById('lightbox-image');
-            const counter = document.getElementById('image-counter');
-            img.src = currentExamImages[currentImageIndex];
-            counter.textContent = `${currentImageIndex + 1}/${currentExamImages.length}`;
-        }
-        
-        function nextImage() {
-            currentImageIndex = (currentImageIndex + 1) % currentExamImages.length;
-            updateLightboxImage();
-        }
-        
-        function prevImage() {
-            currentImageIndex = (currentImageIndex - 1 + currentExamImages.length) % currentExamImages.length;
-            updateLightboxImage();
-        }
-        
-        function closeLightbox() {
-            const lightbox = document.getElementById('exam-lightbox');
-            if(lightbox) lightbox.classList.remove('active');
-        }
-        
-        // إغلاق lightbox عند الضغط خارجه
-        document.addEventListener('click', function(e) {
-            const lightbox = document.getElementById('exam-lightbox');
-            if(lightbox && e.target === lightbox) {
-                closeLightbox();
-            }
-        });
-        
-        // التنقل عبر لوحة المفاتيح
-        document.addEventListener('keydown', function(e) {
-            const lightbox = document.getElementById('exam-lightbox');
-            if(lightbox && lightbox.classList.contains('active')) {
-                if(e.key === 'ArrowRight') nextImage();
-                if(e.key === 'ArrowLeft') prevImage();
-                if(e.key === 'Escape') closeLightbox();
-            }
-        });
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            initDarkMode();
-            checkTeacherLogin();
-            // لا نستدعى renderExams هنا - سيتم استدعاؤها من Firebase
-        });
-    </script>
-    <script type="module">
-        import { getFirestore, collection, query, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        
-        const firebaseConfig = {
-            apiKey: "AIzaSyDimAkjqtt8nl4Her0vqtHVMu4xkluUuqs",
-            authDomain: "fizyai.firebaseapp.com",
-            projectId: "fizyai",
-            storageBucket: "fizyai.firebasestorage.app",
-            messagingSenderId: "172902934430",
-            appId: "1:172902934430:web:ab440e76ef738e5499588f"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        
-        // تحميل الامتحانات من Firebase - اول ما تفتح الصفحة
-        const q = query(collection(db, 'exams'));
-        onSnapshot(q, (snapshot) => {
-            const exams = [];
-            snapshot.forEach((doc) => {
-                exams.push(doc.data());
-            });
-            console.log('تم تحميل الامتحانات من Firebase:', exams);
-            localStorage.setItem('exams', JSON.stringify(exams));
-            // استدعاء render بعد حفظ البيانات مباشرة
-            window.renderExams();
-        });
-    </script>
-</body>
-</html>
+       

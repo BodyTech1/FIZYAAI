@@ -6,69 +6,82 @@
     <meta name="description" content="منصة تعليمية للفيزياء تساعد الطلاب على تعلم الفيزياء بطريقة سهلة وممتعة">
     <meta name="keywords" content="فيزياء, تعليم, منصة تعليمية, دروس فيزياء, امتحانات فيزياء, مذكرات فيزياء">
     <meta name="author" content="مستر ياسر علي">
-    <meta property="og:title" content="فزيائي | منصة تعليمية للفيزياء">
+    <meta property="og:title" content="فزيائي | تسجيل الدخول">
     <meta property="og:description" content="انضم إلينا في فزيائي وتعلم الفيزياء بطريقة سهلة وممتعة مع مستر ياسر علي">
-    <meta property="og:image" content="فزيائي.png">
+    <meta property="og:image" content="فزيائي (1).png">
     <meta property="og:type" content="website">
-    <title>فزيائي | دخول</title>
+    <title>فزيائي | تسجيل الدخول</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="icon" href="فزيائي.png">
+    <link rel="icon" href="فزيائي (1).png">
 </head>
 <body>
     <!-- Navigation Bar -->
     <nav>
         <div class="navbar">
-            <a href="index.html" class="logo">فزيائي</a>
-            <div>
+            <a href="index.html" class="logo"><img src="2.png" alt="فزيائي" style="height:40px;display:inline-block;vertical-align:middle;border-radius:6px;"></a>
+            <div class="nav-items" id="nav-items">
                 <div class="dropdown">
-                    <a href="#">📚 الصفوف</a>
+                    <a href="#">الدروس</a>
                     <div class="dropdown-content">
                         <a href="class-1.html">الصف الأول الثانوي</a>
                         <a href="class-2.html">الصف الثاني الثانوي</a>
                         <a href="class-3.html">الصف الثالث الثانوي</a>
                     </div>
                 </div>
-                <a href="exams.html">الامتحانات</a>
                 <a href="login.html">تسجيل الدخول</a>
-                <a href="register.html">تسجيل جديد</a>
-                <a href="teacher.html" id="teacher-dashboard" class="hidden">👨‍🏫 لوحة التحكم</a>
-                <button onclick="toggleDarkMode()" id="dark-mode-btn">🌙</button>
+                <a href="register.html">إنشاء حساب</a>
+                <a href="teacher.html" id="teacher-dashboard" class="hidden">لوحة التحكم</a>
+                <button onclick="logout()" id="logout-btn" class="hidden">تسجيل خروج</button>
+            </div>
+            <div class="links">
+                <span class="burger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </span>
+                <ul>
+                    <li><a href="#survices">survices</a></li>
+                    <li><a href="#portfolio">Portfolio</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
             </div>
         </div>
     </nav>
-
     <!-- Login Container -->
-    <div class="container">
-        <h2>🔐 دخول منصة فزيائي</h2>
-        <p class="subtitle-text">سجل دخولك للوصول إلى الدروس</p>
-        
-        <input type="email" id="loginEmail" placeholder="📧 البريد الإلكتروني" required>
-        <input type="password" id="loginPassword" placeholder="🔑 كلمة السر" required>
-        
-        <button onclick="login()" class="btn">🚀 دخول للمنصة</button>
-        
-        <p id="message"></p>
-        
-        <hr>
-        
-        <div class="link">
-            <p>ليس لديك حساب؟</p>
-            <a href="register.html">📝 سجل الآن</a>
+    <div class="auth-container">
+        <!-- Image Section -->
+        <div class="auth-image">
+            <img src="تصميم بدون عنوان.jpg" alt="منصة فزيائي">
         </div>
+        
+        <!-- Form Section -->
+        <div class="auth-form">
+            <h2 id="log">تسجيل الدخول</h2>
+            <p class="subtitle-text">سجل دخولك للوصول إلى الدروس والامتحانات</p>
+            
+            <input type="email" id="loginEmail" placeholder="البريد الإلكتروني" required>
+            <input type="password" id="loginPassword" placeholder="كلمة السر" required>
+            
+            <button onclick="login()" class="btn btn-success">دخول</button>
+            
+            <p id="message"></p>
+    
+            
+            <div class="link">
+                <p>ليس لديك حساب؟</p>
+                <a href="register.html">إنشاء حساب جديد</a>
+            </div>
 
-        <p class="sub-text">
-            🔒 حسابك آمن تماماً معنا
-        </p>
+            <p class="sub-text">
+                حسابك آمن تماماً معنا. نحن لا نشارك بيانات المستخدمين مع أي جهة خارجية
+            </p>
+        </div>
     </div>
 
     <!-- Footer -->
     <footer>
         <p>&copy; 2026 منصة فزيائي - جميع الحقوق محفوظة</p>
-        <p>
-            <a href="#">سياسة الخصوصية</a> | 
-            <a href="#">شروط الاستخدام</a> | 
-            <a href="#">تواصل معنا</a>
-        </p>
     </footer>
 
     <script type="module" src="script.js"></script>

@@ -8,98 +8,95 @@
     <meta name="author" content="مستر ياسر علي">
     <meta property="og:title" content="فزيائي | منصة تعليمية للفيزياء">
     <meta property="og:description" content="انضم إلينا في فزيائي وتعلم الفيزياء بطريقة سهلة وممتعة مع مستر ياسر علي">
-    <meta property="og:image" content="فزيائي.png">
+    <meta property="og:image" content="فزيائي (1).png">
     <meta property="og:type" content="website">
     <title>فزيائي | منصة تعليمية للفيزياء</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="icon" href="فزيائي.png">
+    <link rel="icon" href="فزيائي (1).png">
 </head>
 <body>
     <!-- Navigation Bar -->
     <nav>
         <div class="navbar">
-            <a href="index.html" class="logo">فزيائي</a>
-            <div>
-                <div class="dropdown">
-                    <a href="#">📚 الصفوف</a>
-                    <div class="dropdown-content">
-                        <a href="class-1.html">الصف الأول الثانوي</a>
-                        <a href="class-2.html">الصف الثاني الثانوي</a>
-                        <a href="class-3.html">الصف الثالث الثانوي</a>
-                    </div>
-                </div>
-                <a href="exams.html">الامتحانات</a>
-                <a href="login.html">تسجيل الدخول</a>
-                <a href="register.html">تسجيل جديد</a>
-                <a href="teacher.html" id="teacher-dashboard" class="hidden">👨‍🏫 لوحة التحكم</a>
-                <button onclick="logout()" id="logout-btn" class="hidden">🚪 تسجيل خروج</button>
-                <button onclick="toggleDarkMode()" id="dark-mode-btn">🌙</button>
+            <a href="index.html" class="logo"><img src="2.png" alt="فزيائي" style="height:40px;display:inline-block;vertical-align:middle;border-radius:6px;"></a>
+            <div class="nav-items" id="nav-items">
+                    <a href="lessonse.html">الدروس</a>
+                <a href="exams.html">الامتحانات</a>         
+                <a href="login.html#log">تسجيل الدخول</a>
+                <a href="register.html#creat">إنشاء حساب</a>
+                <a href="teacher.html" id="teacher-dashboard" class="hidden">لوحة التحكم</a>
+                <button onclick="logout()" id="logout-btn" class="hidden">تسجيل خروج</button>
             </div>
+                <div class="links">
+            <span class="burger">
+                <span></span>
+                <span ></span>
+                <span></span>
+            </span>
+      
+        </div>
         </div>
     </nav>
 
     <!-- Main Content -->
-    <div class="container-large">
-        <h1>🎓 مرحباً بك في منصة فزيائي</h1>
-        <p id="welcome-name"></p>
-        <p class="intro-text">
-          منصة تعليمية متقدمة لتعلم الفيزياء بطريقة سهلة وممتعة مع مستر ياسر علي
-        </p>
+    
+      <div class="intro-grid">
+        <div class="ph1">
+          <h1 class="hh">مرحباً بك في منصة فزيائي</h1>
+          <p id="welcome-name"></p>
+          <p class="intro-text">
+أنا مستر ياسر علي، معلم خبير في مادة الفيزياء للثانوية العامة
+. من خلال منصة فزيائي هنقدّم الشرح المبسط، الامتحانات التفاعلية، والمتابعة المستمرة لحد ما توصل للنجاح.
 
-        <div class="cards-grid">
-                <div class="card">
-                <h3>⚛️ دروس متقدمة</h3>
-                <p>تعلم الفيزياء من خلال دروس فيديو احترافية وشاملة</p>
-                <a href="lessonse.html" class="btn btn-small btn-full">ابدأ التعلم</a>
-            </div>
-
-           <!-- <div class="card">
-                <h3>📚 موارد تعليمية</h3>
-                <p>مذكرات وملخصات شاملة لكل موضوع</p>
-                <button class="btn btn-small btn-full">⬍️ تحميل</button>
-            </div>-->
-
-            <div class="card">
-                <h3>💪 تمارين وامتحانات</h3>
-                <p>تدرب على أسئلة متنوعة واختبر مستواك</p>
-                <a href="exams.html" class="btn btn-small btn-full">ابدأ الحل</a>
-            </div>
-
-          <!--  <div class="card">
-                <h3>🏆 شهادات معترفة</h3>
-                <p>احصل على شهادات بعد إكمال الدورة</p>
-                <button class="btn btn-small btn-full">التفاصيل</button>
-            </div>-->
+          </p>
         </div>
 
-        <hr>
+        <!-- Image Section -->
+        <div class="animation">
+            <img src="فزيائي.png" alt="منصة فزيائي" style="max-width: 100%; height: auto; border-radius: 12px;" class="center-logo">
+            <div class="item item1">شرح مبسط</div>
+
+            <div class="item item2">دروس مسجله</div>
+
+            <div class="item item3">مراجعات نهائيه</div>
+
+            <div class="item item4">حل اسئله</div>
+
+            <div class="item item5">اجتماعات zoom</div>
+        
+        </div>
+      </div>
+        <div class="container-large">
+
+      
+    
         <!-- Meetings Section (buttons view) -->
         <div class="container-large">
-            <h1>📅 اجتماعات زووم</h1>
-            <p class="description-text">انضم للاجتماعات الحية التي ينشئها المدرس. زر الانضمام يفتح قبل 5 دقائق من الموعد.</p>
+            <h1 class="white">اجتماعات زووم</h1>
+            <p>انضم للاجتماعات الحية التي ينشئها المدرس. زر الانضمام يفتح قبل 5 دقائق من الموعد.</p>
             <div id="index-meetings-list" class="meetings-list">
                 <!-- buttons injected here -->
             </div>
         </div>
          <div class="container-large">
-        <h1>📝 الامتحانات</h1>
+        <h1>الامتحانات</h1>
        
 <a href="e1.html">
         <div class="cards-grid">
             <div class="card">
-                <h3>الصف الأول الثانوي</h3>
+                <h3 class="white">الصف الأول الثانوي</h3>
                 
             </div>
 </a>
 <a href="e2.html">
             <div class="card">
-                <h3>الصف الثاني الثانوي</h3>
+                <h3 class="white">الصف الثاني الثانوي</h3>
                
             </div>
 </a>
 <a href="e3.html">
             <div class="card">
-                <h3>الصف الثالث الثانوي</h3>
+                <h3 class="white">الصف الثالث الثانوي</h3>
                 
             </div>
         </div>
@@ -108,24 +105,24 @@
         <hr>
 
  <div class="container-large">
-        <h1>📚 دروس الفيزياء</h1>
+        <h1>دروس الفيزياء</h1>
        
 <a href="class-1.html">
         <div class="cards-grid">
             <div class="card">
-                <h3>الصف الأول الثانوي</h3>
+                <h3 class="white">الصف الأول الثانوي</h3>
                 
             </div>
 </a>
 <a href="class-2.html">
             <div class="card">
-                <h3>الصف الثاني الثانوي</h3>
+                <h3 class="white">الصف الثاني الثانوي</h3>
                 
             </div>
 </a>
 <a href="class-3.html">
             <div class="card">
-                <h3>الصف الثالث الثانوي</h3>
+                <h3 class="white">الصف الثالث الثانوي</h3>
                 
             </div>
         </div>
@@ -137,11 +134,11 @@
       
 
         <div class="container-large">
-            <h1>📍 مراكز سنتر</h1>
+            <h1>اماكن السناتر</h1>
             <div id="index-centers-list" style="width:100%;"></div>
         </div>
     </div>
-
+</div>
     <!-- Footer -->
     <footer>
         <p>&copy; 2026 منصة فزيائي - جميع الحقوق محفوظة</p>
